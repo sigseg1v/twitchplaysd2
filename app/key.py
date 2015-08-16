@@ -5,7 +5,7 @@ import win32con
 import win32ui
 import time,sys
 
-keyDelay = 0
+keyDelay = 0.1
 keymap = {
     "Up": win32con.VK_UP,
     "Left": win32con.VK_LEFT,

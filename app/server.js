@@ -60,5 +60,9 @@ client.addListener('error', function(message) {
     console.log('error: ', message);
 });
 
+client.addListener('registered', function () {
+    console.log('Connected!');
+});
+
 client.connect();
 console.log('Connecting...');

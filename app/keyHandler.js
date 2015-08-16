@@ -42,6 +42,9 @@ var mouseMappings = {
 };
 
 var state = {
+    mouseX: 0,
+    mouseY: 0,
+
     treeRow: 1,
     treeCol: 1,
 
@@ -65,13 +68,13 @@ var state = {
 
 var actionMap = {
     "center": function () { return { mouse: { x: 400, y: 300 } }; },
-    "left": function () { return { mouse: { x: 360, y: 300 }, key: 'Left' }; },
+    "left": function () { return { mouse: { x: 360, y: 300 }, key: '{Left}' }; },
     "upleft": function () { return { mouse: { x: 360, y: 260 } }; },
-    "up": function () { return { mouse: { x: 400, y: 260 }, key: 'Up' }; },
+    "up": function () { return { mouse: { x: 400, y: 260 }, key: '{Up}' }; },
     "upright": function () { return { mouse: { x: 440, y: 260 } }; },
-    "right": function () { return { mouse: { x: 440, y: 300 }, key: 'Right' }; },
+    "right": function () { return { mouse: { x: 440, y: 300 }, key: '{Right}' }; },
     "downright": function () { return { mouse: { x: 440, y: 340 } }; },
-    "down": function () { return { mouse: { x: 400, y: 340 }, key: 'Down' }; },
+    "down": function () { return { mouse: { x: 400, y: 340 }, key: '{Down}' }; },
     "downleft": function () { return { mouse: { x: 360, y: 340 } }; },
 
     "str": function () { return { mouse: { x: 220, y: 150 } }; },
@@ -221,11 +224,11 @@ var actionMap = {
 
     "click": function () { return { mouse: { left: true } }; },
     "rclick": function () { return { mouse: { right: true } }; },
-    "close": function () { return { key: 'Space' }; },
-    "enter": function () { return { key: 'Enter' }; },
-    "number": function (match) { return { key: "" + parseInt(match[1]) }; },
-    "fkey": function (match) { return { key: "F" + parseInt(match[1]) }; },
-    "numpad": function (match) { return { key: "Num" + parseInt(match[1]) }; },
+    "close": function () { return { key: '{Space}' }; },
+    "enter": function () { return { key: '{Enter}' }; },
+    "number": function (match) { return { key: "{" + parseInt(match[1]) + "}" }; },
+    "fkey": function (match) { return { key: "{F" + parseInt(match[1]) + "}" }; },
+    "numpad": function (match) { return { key: "{Numpad" + parseInt(match[1]) + "}" }; },
     "run": function () { return { key: 'R' }; },
     "swap": function () { return { key: 'W' }; },
     "left menu": function () {
@@ -235,7 +238,7 @@ var actionMap = {
     "stats": function () { return { key: 'C' }; },
     "inv": function () { return { key: 'I' }; },
     "skills": function () { return { key: 'T' }; },
-    "map": function () { return { key: 'Tab' }; },
+    "map": function () { return { key: '{Tab}' }; },
     "quests": function () { return { key: 'Q' }; },
     "merc": function () { return { key: 'O' }; },
 };
@@ -272,22 +275,24 @@ function sendCommand(command, args) {
                 //Send to preset window under non-windows systems
                 exec('xdotool key --window ' + windowID + ' --delay ' + config.delay + ' ' + actionResult.key);
             } else {
-                //use python on windows
-                // "VisualBoyAdvance"
-                // "DeSmuME 0.9.10 x64"
-                exec('key.py' + '  ' + config.programName + ' ' + actionResult.key);
+                exec('autohotkey ./app/sendkey.ahk ' + actionResult.key);
             }
         }
         if (actionResult.hasOwnProperty('mouse')) {
-            if (actionResult.hasOwnProperty('x') && actionResult.hasOwnProperty('y')) {
-                var x = actionResult.mouse.x;
-                var y = actionResult.mouse.y;
-                exec('mouse.py' + '  ' + config.programName + ' ' + x + ' ' + y);
+            if (actionResult.mouse.hasOwnProperty('x') && actionResult.mouse.hasOwnProperty('y')) {
+                state.mouseX = actionResult.mouse.x;
+                state.mouseY = actionResult.mouse.y;
             }
-            if (actionResult.hasOwnProperty('left') || actionResult.hasOwnProperty('right')) {
-                var left = actionResult.mouse.left ? "1" : "0";
-                var right = actionResult.mouse.right ? "1" : "0";
-                exec('mouseClick.py' + '  ' + config.programName + ' ' + left + ' ' + right);
+            var x = state.mouseX;
+            var y = state.mouseY;
+            if (!actionResult.mouse.left && !actionResult.mouse.right) {
+                exec('autohotkey ./app/movemouse.ahk ' + x + ' ' + y);
+            } else {
+                if (actionResult.mouse.left) {
+                    exec('autohotkey ./app/clickmouseat.ahk ' + x + ' ' + y + ' left');
+                } else if (actionResult.mouse.right) {
+                    exec('autohotkey ./app/clickmouseat.ahk ' + x + ' ' + y + ' right');
+                }
             }
         }
     }
