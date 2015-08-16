@@ -1,7 +1,7 @@
-SetTitleMatchMode, 2
 DetectHiddenWindows, On
 SetDefaultMouseSpeed, 0
-target=Diablo II
+CoordMode, Mouse, Client
+target=ahk_class Diablo II
 
 WinGet, hwnd, ID, %target%
 if (hwnd) {

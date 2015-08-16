@@ -1,8 +1,8 @@
 require('string.prototype.repeat'); // polyfill
-
-var exec = require('child_process').exec,
-config = require('./config.js'),
-lastTime = {},
+var Promise = require('bluebird');
+var exec = Promise.promisify(require('child_process').exec);
+var config = require('./config.js');
+var lastTime = {},
 windowID = 'unfilled',
 throttledCommands = config.throttledCommands,
 regexThrottle = new RegExp('^(' + throttledCommands.join('|') + ')$', 'i'),
@@ -14,12 +14,14 @@ for (var i = 0; i < throttledCommands.length; i++) {
 
 function setWindowID() {
     if (config.os === 'other' & windowID === 'unfilled') {
-        exec('xdotool search --onlyvisible --name ' + config.programName, function(error, stdout) {
+        exec('xdotool search --onlyvisible --name ' + config.programName).then(function(stdout) {
             windowID = stdout.trim();
             // console.log(key, windowID);
         });
     }
 }
+
+var commandAggregator = {};
 
 var mouseMappings = {
     treeTab: [220,330,420],
@@ -69,15 +71,15 @@ var state = {
 };
 
 var actionMap = {
-    "center": function () { return { mouse: { x: 400, y: 300 } }; },
-    "left": function () { return { mouse: { x: 360, y: 300 }, key: '{Left}' }; },
-    "upleft": function () { return { mouse: { x: 360, y: 260 } }; },
-    "up": function () { return { mouse: { x: 400, y: 260 }, key: '{Up}' }; },
-    "upright": function () { return { mouse: { x: 440, y: 260 } }; },
-    "right": function () { return { mouse: { x: 440, y: 300 }, key: '{Right}' }; },
-    "downright": function () { return { mouse: { x: 440, y: 340 } }; },
-    "down": function () { return { mouse: { x: 400, y: 340 }, key: '{Down}' }; },
-    "downleft": function () { return { mouse: { x: 360, y: 340 } }; },
+    "center": function () { return { mouse: { x: 400, y: 282 } }; },
+    "left": function () { return { mouse: { x: 360, y: 282 }, key: '{Left}' }; },
+    "upleft": function () { return { mouse: { x: 360, y: 242 } }; },
+    "up": function () { return { mouse: { x: 400, y: 242 }, key: '{Up}' }; },
+    "upright": function () { return { mouse: { x: 440, y: 242 } }; },
+    "right": function () { return { mouse: { x: 440, y: 282 }, key: '{Right}' }; },
+    "downright": function () { return { mouse: { x: 440, y: 322 } }; },
+    "down": function () { return { mouse: { x: 400, y: 322 }, key: '{Down}' }; },
+    "downleft": function () { return { mouse: { x: 360, y: 322 } }; },
 
     "str": function () { return { mouse: { x: 220, y: 150 } }; },
     "dex": function () { return { mouse: { x: 220, y: 215 } }; },
@@ -246,8 +248,8 @@ var actionMap = {
 };
 
 function rowColToState(row, col, rowMappings, colMappings) {
-    var rowIndex = rowMappings.indexOf(row);
-    var colIndex = colMappings.indexOf(col);
+    var rowIndex = rowMappings.length > row - 1 ? row - 1 : -1;
+    var colIndex = colMappings.length > col - 1 ? col - 1 : -1;
     if (rowIndex === -1 || colIndex === -1) {
         return {};
     } else {
@@ -265,7 +267,7 @@ function toActionCount(str) {
     return 1;
 }
 
-function sendCommand(command, args) {
+function queueCommand(command, args) {
     //if doesn't match the filtered words
     if (!command.match(regexFilter)) {
         if (!actionMap.hasOwnProperty(command)) {
@@ -280,37 +282,80 @@ function sendCommand(command, args) {
             }
         }
         var action = actionMap[command];
-        var actionResult = action(args);
-        if (actionResult.hasOwnProperty('key')) {
-            //if xdotool is installed
-            if (config.os === 'other') {
-                //Send to preset window under non-windows systems
-                exec('xdotool key --window ' + windowID + ' --delay ' + config.delay + ' ' + actionResult.key);
-            } else {
-                exec('autohotkey ./app/sendkey.ahk ' + actionResult.key);
-            }
+        var actionPayload = action(args);
+        var key = JSON.stringify(actionPayload);
+        if (!commandAggregator[key]) {
+            var val = {
+                payload: actionPayload,
+                count: 1
+            };
+            commandAggregator[key] = val;
+        } else {
+            commandAggregator[key].count++;
         }
-        if (actionResult.hasOwnProperty('mouse')) {
-            if (actionResult.mouse.hasOwnProperty('x') && actionResult.mouse.hasOwnProperty('y')) {
-                state.mouseX = actionResult.mouse.x;
-                state.mouseY = actionResult.mouse.y;
-            }
-            var x = state.mouseX;
-            var y = state.mouseY;
-            if (!actionResult.mouse.left && !actionResult.mouse.right) {
-                exec('autohotkey ./app/movemouse.ahk ' + x + ' ' + y);
-            } else {
-                if (actionResult.mouse.left) {
-                    exec('autohotkey ./app/clickmouseat.ahk ' + x + ' ' + y + ' left ' + (actionResult.mouse.count || '1'));
-                } else if (actionResult.mouse.right) {
-                    exec('autohotkey ./app/clickmouseat.ahk ' + x + ' ' + y + ' right ' + (actionResult.mouse.count || '1'));
-                }
+
+        executeAction(actionPayload);
+    }
+}
+
+function getMostPopularCommand() {
+    var highestCount = 0;
+    var current;
+    var count;
+    var payload = null;
+    var keys = Object.keys(commandAggregator);
+    for (var i = 0, len = keys.length; i < len; i++) {
+        var current = commandAggregator[keys[i]];
+        count = current.count;
+        if (count > highestCount) {
+            highestCount = count;
+            payload = current.payload;
+        }
+    }
+    return payload;
+}
+
+function clearCommandQueue() {
+    commandAggregator = {};
+}
+
+function executeAction(action) {
+    var promises = [];
+    if (action.hasOwnProperty('key')) {
+        //if xdotool is installed
+        if (config.os === 'other') {
+            //Send to preset window under non-windows systems
+            promises.push(exec('xdotool key --window ' + windowID + ' --delay ' + config.delay + ' ' + action.key));
+        } else {
+            promises.push(exec('autohotkey ./app/sendkey.ahk ' + action.key));
+        }
+    }
+    if (action.hasOwnProperty('mouse')) {
+        if (action.mouse.hasOwnProperty('x') && action.mouse.hasOwnProperty('y')) {
+            state.mouseX = action.mouse.x;
+            state.mouseY = action.mouse.y;
+        }
+        var x = state.mouseX;
+        var y = state.mouseY;
+        if (!action.mouse.left && !action.mouse.right) {
+            promises.push(exec('autohotkey ./app/movemouse.ahk ' + x + ' ' + y));
+        } else {
+            if (action.mouse.left) {
+                promises.push(exec('autohotkey ./app/clickmouseat.ahk ' + x + ' ' + y + ' left ' + (action.mouse.count || '1')));
+            } else if (action.mouse.right) {
+                promises.push(exec('autohotkey ./app/clickmouseat.ahk ' + x + ' ' + y + ' right ' + (action.mouse.count || '1')));
             }
         }
     }
+    return Promise.all(promises);
 }
 
 //Only actually does something when not running under windows.
 setWindowID();
 
-exports.sendCommand = sendCommand;
+module.exports = {
+    queueCommand: queueCommand,
+    getMostPopularCommand: getMostPopularCommand,
+    clearCommandQueue: clearCommandQueue,
+    executeAction: executeAction
+};

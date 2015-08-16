@@ -43,7 +43,7 @@ client.addListener('message' + config.channel, function(from, message) {
             var maxName = config.maxCharName,
             maxCommand = config.maxCharCommand,
             logFrom = from.substring(0, maxName),
-            logMessage = message.substring(0, 6).toLowerCase();
+            logMessage = message.substring(0, maxCommand);
             //format log
             console.log(printf('%-' + maxName + 's % ' + maxCommand + 's',
                 logFrom, logMessage));
@@ -51,7 +51,7 @@ client.addListener('message' + config.channel, function(from, message) {
 
         // Should the message be sent the program?
         if (config.sendKey) {
-            keyHandler.sendCommand(command, match);
+            keyHandler.queueCommand(command, match);
         }
     }
 });
@@ -66,3 +66,17 @@ client.addListener('registered', function () {
 
 client.connect();
 console.log('Connecting...');
+
+function getAndExecuteCommand() {
+    var command = keyHandler.getMostPopularCommand();
+    if (command !== null) {
+        console.log('executing action', command);
+        keyHandler.clearCommandQueue();
+        keyHandler.executeAction(command).finally(getAndExecuteCommand);
+    } else {
+        setTimeout(getAndExecuteCommand, 500);
+    }
+}
+
+getAndExecuteCommand();
+console.log('Listening for commands...');

@@ -1,7 +1,8 @@
-SetTitleMatchMode, 2
 DetectHiddenWindows, On
 SetDefaultMouseSpeed, 0
-target=Diablo II
+CoordMode, Mouse, Client
+target=ahk_class Diablo II
+
 if (%0% < 4 || %0% == "") {
     loops = 1
 } else {
@@ -16,13 +17,15 @@ if (hwnd) {
         BlockInput On
         Loop %loops% {
             MouseMove, %1%, %2%, 0
-            if (%A_Index% > 1) {
-                MouseClick, %3%, , , , 0, D
-                Sleep 300
-                MouseClick, %3%, , , , 0, U
-            } else {
+            ;if (%A_Index% == %loops%) {
                 MouseClick, %3%, , , , 0
-            }
+                Sleep 250
+            ;} else {
+            ;    MouseClick, %3%, , , , 0, D
+            ;    Sleep 250
+            ;    MouseClick, %3%, , , , 0, U
+            ;    Sleep 50
+            ;}
         }
         BlockInput Off
     }
