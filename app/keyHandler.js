@@ -279,6 +279,16 @@ function sendCommand(command, args) {
             }
         }
         if (actionResult.hasOwnProperty('mouse')) {
+            if (actionResult.hasOwnProperty('x') && actionResult.hasOwnProperty('y')) {
+                var x = actionResult.mouse.x;
+                var y = actionResult.mouse.y;
+                exec('mouse.py' + '  ' + config.programName + ' ' + x + ' ' + y);
+            }
+            if (actionResult.hasOwnProperty('left') || actionResult.hasOwnProperty('right')) {
+                var left = actionResult.mouse.left ? "1" : "0";
+                var right = actionResult.mouse.right ? "1" : "0";
+                exec('mouseClick.py' + '  ' + config.programName + ' ' + left + ' ' + right);
+            }
         }
     }
 }
