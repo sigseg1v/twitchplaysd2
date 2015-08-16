@@ -1,3 +1,5 @@
+require('string.prototype.repeat'); // polyfill
+
 var exec = require('child_process').exec,
 config = require('./config.js'),
 lastTime = {},
@@ -222,25 +224,25 @@ var actionMap = {
     "inv gold": function () { return { mouse: { x: 494, y: 463 } }; },
     "stash gold": function () { return { mouse: { x: 165, y: 93 } }; },
 
-    "click": function () { return { mouse: { left: true } }; },
-    "rclick": function () { return { mouse: { right: true } }; },
-    "close": function () { return { key: '{Space}' }; },
-    "enter": function () { return { key: '{Enter}' }; },
+    "click": function (match) { return { mouse: { left: true, count: toActionCount(match[2]) } }; },
+    "rclick": function (match) { return { mouse: { right: true, count: toActionCount(match[2]) } }; },
+    "close": function (match) { return { key: match[2] ? '{Space}'.repeat(toActionCount(match[2])) : '{Space}' }; },
+    "enter": function (match) { return { key: match[2] ? '{Enter}'.repeat(toActionCount(match[2])) : '{Enter}' }; },
     "number": function (match) { return { key: "{" + parseInt(match[1]) + "}" }; },
     "fkey": function (match) { return { key: "{F" + parseInt(match[1]) + "}" }; },
     "numpad": function (match) { return { key: "{Numpad" + parseInt(match[1]) + "}" }; },
-    "run": function () { return { key: 'R' }; },
-    "swap": function () { return { key: 'W' }; },
+    "run": function (match) { return { key: match[2] ? '{R}'.repeat(toActionCount(match[2])) : '{R}' }; },
+    "swap": function (match) { return { key: match[2] ? '{W}'.repeat(toActionCount(match[2])) : '{W}' }; },
     "left menu": function () {
         return { mouse: { x: 142, y: 577, left: true } };
     },
     "right menu": function () { return { key: 'S' }; },
-    "stats": function () { return { key: 'C' }; },
-    "inv": function () { return { key: 'I' }; },
-    "skills": function () { return { key: 'T' }; },
-    "map": function () { return { key: '{Tab}' }; },
-    "quests": function () { return { key: 'Q' }; },
-    "merc": function () { return { key: 'O' }; },
+    "stats": function (match) { return { key: match[2] ? '{C}'.repeat(toActionCount(match[2])) : '{C}' }; },
+    "inv": function (match) { return { key: match[2] ? '{I}'.repeat(toActionCount(match[2])) : '{I}' }; },
+    "skills": function (match) { return { key: match[2] ? '{T}'.repeat(toActionCount(match[2])) : '{T}' }; },
+    "map": function (match) { return { key: match[2] ? '{Tab}'.repeat(toActionCount(match[2])) : '{Tab}' }; },
+    "quests": function (match) { return { key: match[2] ? '{Q}'.repeat(toActionCount(match[2])) : '{Q}' }; },
+    "merc": function (match) { return { key: match[2] ? '{O}'.repeat(toActionCount(match[2])) : '{O}' }; },
 };
 
 function rowColToState(row, col, rowMappings, colMappings) {
@@ -251,6 +253,16 @@ function rowColToState(row, col, rowMappings, colMappings) {
     } else {
         return { mouse: { x: colMappings[colIndex], y: rowMappings[rowIndex] } };
     }
+}
+
+function toActionCount(str) {
+    if (str !== undefined && str !== null && str !== "") {
+        var num = parseInt(str);
+        if (num >= 1 && num <= 9) {
+            return num;
+        }
+    }
+    return 1;
 }
 
 function sendCommand(command, args) {
@@ -289,9 +301,9 @@ function sendCommand(command, args) {
                 exec('autohotkey ./app/movemouse.ahk ' + x + ' ' + y);
             } else {
                 if (actionResult.mouse.left) {
-                    exec('autohotkey ./app/clickmouseat.ahk ' + x + ' ' + y + ' left');
+                    exec('autohotkey ./app/clickmouseat.ahk ' + x + ' ' + y + ' left ' + (actionResult.mouse.count || '1'));
                 } else if (actionResult.mouse.right) {
-                    exec('autohotkey ./app/clickmouseat.ahk ' + x + ' ' + y + ' right');
+                    exec('autohotkey ./app/clickmouseat.ahk ' + x + ' ' + y + ' right ' + (actionResult.mouse.count || '1'));
                 }
             }
         }
