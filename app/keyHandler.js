@@ -13,7 +13,7 @@ for (var i = 0; i < throttledCommands.length; i++) {
 }
 
 function setWindowID() {
-    if (config.os === 'other' & windowID === 'unfilled') {
+    if (config.os === 'other' && windowID === 'unfilled') {
         exec('xdotool search --onlyvisible --name ' + config.programName).then(function(stdout) {
             windowID = stdout.trim();
             // console.log(key, windowID);
@@ -78,7 +78,7 @@ var actionMap = {
     "upright": function (match) { return { mouse: { x: 440 + (toActionCount(match[1], 0, 3) * 50), y: 242 - (toActionCount(match[1], 0, 3) * 50) } }; },
     "right": function (match) { return { mouse: { x: 440 + (toActionCount(match[1], 0, 3) * 50), y: 282 }, key: '{Right}' }; },
     "downright": function (match) { return { mouse: { x: 440 + (toActionCount(match[1], 0, 3) * 50), y: 322 + (toActionCount(match[1], 0, 3) * 50) } }; },
-    "down": function (match) { return { mouse: { x: 400, y: 322 }, key: '{Down}' }; },
+    "down": function (match) { return { mouse: { x: 400, y: 322 + (toActionCount(match[1], 0, 3) * 50) }, key: '{Down}' }; },
     "downleft": function (match) { return { mouse: { x: 360 - (toActionCount(match[1], 0, 3) * 50), y: 322 + (toActionCount(match[1], 0, 3) * 50) } }; },
 
     "str": function () { return { mouse: { x: 220, y: 150 } }; },
@@ -98,12 +98,11 @@ var actionMap = {
     "tree tab": function (match) {
         var x = 670;
         var slotNumber = parseInt(match[1]);
-        var index = mouseMappings.treeTab.indexOf(slotNumber);
-        if (index !== -1) {
+        if (mouseMappings.treeTab.length > slotNumber - 1) {
+            var index = slotNumber;
             return { mouse: { x: x, y: mouseMappings.treeTab[index] } };
-        } else {
-            return {};
         }
+        return {};
     },
     "tree row": function (match) {
         var slotNumber = parseInt(match[1]);
@@ -181,7 +180,7 @@ var actionMap = {
     "cube transmute": function () { return { mouse: { x: 239, y: 338 } }; },
 
     "inv slot": function (match) {
-        var slot = match[1];
+        var slot = match[2];
         switch(slot) {
             case "weapon":
                 return { mouse: { x: 449, y: 164 } };
@@ -225,6 +224,49 @@ var actionMap = {
 
     "inv gold": function () { return { mouse: { x: 494, y: 463 } }; },
     "stash gold": function () { return { mouse: { x: 165, y: 93 } }; },
+
+    "wp": function (match) {
+        var slot = parseInt(match[1]);
+        switch(slot) {
+            case 1:
+                return { mouse: { x: 112, y: 134 } };
+            case 2:
+                return { mouse: { x: 112, y: 170 } };
+            case 3:
+                return { mouse: { x: 112, y: 210 } };
+            case 4:
+                return { mouse: { x: 112, y: 246 } };
+            case 5:
+                return { mouse: { x: 112, y: 281 } };
+            case 6:
+                return { mouse: { x: 112, y: 317 } };
+            case 7:
+                return { mouse: { x: 112, y: 353 } };
+            case 8:
+                return { mouse: { x: 112, y: 389 } };
+            case 9:
+                return { mouse: { x: 112, y: 424 } };
+            default:
+                return {};
+        }
+    },
+    "wp tab": function (match) {
+        var slot = parseInt(match[1]);
+        switch(slot) {
+            case 1:
+                return { mouse: { x: 119, y: 80 } };
+            case 2:
+                return { mouse: { x: 181, y: 80 } };
+            case 3:
+                return { mouse: { x: 239, y: 80 } };
+            case 4:
+                return { mouse: { x: 304, y: 80 } };
+            case 5:
+                return { mouse: { x: 364, y: 80 } };
+            default:
+                return {};
+        }
+    },
 
     "click": function (match) { return { mouse: { left: true, count: toActionCount(match[2]) } }; },
     "rclick": function (match) { return { mouse: { right: true, count: toActionCount(match[2]) } }; },
