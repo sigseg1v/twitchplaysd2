@@ -2,22 +2,24 @@ module.exports = function (grunt) {
     require('load-grunt-tasks')(grunt);
 
     grunt.initConfig({
-        execute: {
+        run: {
             server: {
-                src: [ 'app/server.js' ]
+                options: {
+                    wait: false
+                },
+                args: [ 'app/server.js' ]
             }
         },
         watch: {
             scripts: {
                 files: [ 'app/*.ahk', 'app/*.js', 'Gruntfile.js' ],
-                tasks: [ 'execute:server' ],
+                tasks: [ 'run:server' ],
                 options: {
-                    atBegin: true,
                     interrupt: true // kill process and reload
                 }
             }
         }
     });
 
-    grunt.registerTask('listen', [ 'watch:scripts' ]);
+    grunt.registerTask('listen', [ 'run:server', 'watch:scripts' ]);
 };
