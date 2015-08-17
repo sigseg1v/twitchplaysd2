@@ -63,7 +63,7 @@ if (config.obsRemoteEnable) {
         }
     };
     obs.onConnectionClosed = function () {
-        console.log('OBSRemote connection closed.')
+        console.log('OBSRemote connection closed.');
     };
     obs.connect(config.obsRemoteServer, config.obsRemotePw);
     console.log('Connecting to OBSRemote...');
@@ -79,8 +79,6 @@ function stopEverything() {
         streaming = false;
     }
 }
-
-var commandRegex = new RegExp('^(' + Object.keys(config.commands).join('|') + ')$', 'i');
 
 client.addListener('message' + config.channel, function(from, message) {
     var match = null;
