@@ -122,13 +122,13 @@ var actionMap = {
     },
     "right col": function (match) {
         var slotNumber = parseInt(match[1]);
-        state.treeRow = slotNumber;
+        state.rightCol = slotNumber;
         state.lastSkillSide = 'right';
         return rowColToState(state.skillRow, state.rightCol, mouseMappings.skillRow, mouseMappings.rightCol);
     },
     "left col": function (match) {
         var slotNumber = parseInt(match[1]);
-        state.treeRow = slotNumber;
+        state.leftCol = slotNumber;
         state.lastSkillSide = 'left';
         return rowColToState(state.skillRow, state.leftCol, mouseMappings.skillRow, mouseMappings.leftCol);
     },
