@@ -80,11 +80,11 @@
 
 - energy
 
-*Belt*
+###Belt
 
 - belt1-4
 
-*Skill Tree*
+###Skill Tree
 
 - tree tab1-3
 
@@ -127,7 +127,9 @@
 - merc X where X is (weapon|offhand|head|chest)
 
 ###Waypoints
+
 - wp tab1-5
+
 - wp1-9
 
 ###Gold Drop Buttons

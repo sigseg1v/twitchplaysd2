@@ -99,7 +99,7 @@ var actionMap = {
         var x = 670;
         var slotNumber = parseInt(match[1]);
         if (mouseMappings.treeTab.length > slotNumber - 1) {
-            var index = slotNumber;
+            var index = slotNumber - 1;
             return { mouse: { x: x, y: mouseMappings.treeTab[index] } };
         }
         return {};
