@@ -92,6 +92,11 @@
 
 - tree col1-3
 
+###Skill Quickbars
+- skill row1-5 -- *sets the row for both the left and right skill quickbars*
+- right col1-10 -- *sets the column for the right skill quickbar (only visible when opened)*
+- left col1-10 -- *sets the column for the right skill quickbar (only visible when opened)*
+
 ###Inventory Positions
 
 - inv row1-4

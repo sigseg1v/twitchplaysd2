@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html style="width: 267px; height: 600px;">
+<head>
+</head>
+<body style="color: white;">
+    <script src="lib/jquery-2.1.4.min.js"></script>
+    <script src="lib/knockout-3.3.0.js"></script>
+    <script src="overlay_compiled.js"></script>
+    <div>
+        <span data-bind="text: command"></span>
+    </div>
+    <div>
+        <div data-bind="foreach: chat">
+            <div>
+                <span data-bind="text: username + ': ' + message"></span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -8,8 +8,16 @@ module.exports = function (grunt) {
                     wait: false
                 },
                 args: [ 'app/server.js' ]
+            },
+
+            overlay: {
+                options: {
+                    wait: false
+                },
+                args: [ 'app/overlay_server.js' ]
             }
         },
+
         watch: {
             scripts: {
                 files: [ 'app/*.ahk', 'app/*.js', 'Gruntfile.js' ],
@@ -17,9 +25,20 @@ module.exports = function (grunt) {
                 options: {
                     interrupt: true // kill process and reload
                 }
+            },
+            overlay: {
+                files: [ 'app/overlay_server.js', 'overlay/overlay.js', 'overlay/*.html', 'overlay/lib/**/*.js' ],
+                tasks: [ 'browserify:overlay' ]
+            }
+        },
+
+        browserify: {
+            overlay: {
+                src: 'overlay/overlay.js',
+                dest: 'overlay/overlay_compiled.js'
             }
         }
     });
 
-    grunt.registerTask('listen', [ 'run:server', 'watch:scripts' ]);
+    grunt.registerTask('listen', [ 'browserify:overlay', 'run:server', 'run:overlay', 'watch:scripts' /*, 'watch:overlay'*/ ]);
 };

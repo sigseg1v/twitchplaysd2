@@ -1,0 +1,2 @@
+Window: 800x600
+Window with overlay: [(600 * 16 / 9) == 1066.67] x 600 --> 267px width overlay
