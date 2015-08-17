@@ -68,6 +68,8 @@ var commands = {
 var username = process.env.TWITCH_USERNAME || nconf.get('TWITCH_USERNAME');
 var oauth = process.env.TWITCH_OAUTH || nconf.get('TWITCH_OAUTH');
 var channel = process.env.TWITCH_CHANNEL || nconf.get('TWITCH_CHANNEL');
+var obsRemoteServer = process.env.OBS_REMOTE_SERVER || nconf.get('OBS_REMOTE_SERVER');
+var obsRemotePw = process.env.OBS_REMOTE_PW || nconf.get('OBS_REMOTE_PW');
 var os = process.env.CONFIG_OS || nconf.get('CONFIG_OS');
 var programName = process.env.CONFIG_PROGRAM_NAME || nconf.get('CONFIG_PROGRAM_NAME');
 var maxCharName = process.env.CONFIG_MAX_CHAR_NAME || nconf.get('CONFIG_MAX_CHAR_NAME');
@@ -77,7 +79,7 @@ var serverIP = process.env.TWITCH_IP || nconf.get('TWITCH_IP');
 var filteredCommands = process.env.CONFIG_FILTERED_COMMANDS || nconf.get('CONFIG_FILTERED_COMMANDS');
 var throttledCommands = process.env.CONFIG_THROTTLED_COMMANDS || nconf.get('CONFIG_THROTTLED_COMMANDS');
 
-var ircConfig = {
+var config = {
     // Either 'windows' or 'other'
     os: os || 'windows',
 
@@ -93,6 +95,11 @@ var ircConfig = {
     password: oauth,
     // name of channel
     channel: channel,
+
+    obsRemoteEnable: !!(obsRemoteServer || obsRemotePw),
+    obsRemoteServer: obsRemoteServer,
+    // pw for http://www.obsremote.com
+    obsRemotePw: obsRemotePw,
 
     // If you want to print usernames/commands like in twitchplayspokemon
     printToConsole: true,
@@ -122,4 +129,4 @@ var ircConfig = {
     commands: commands
 };
 
-module.exports = ircConfig;
+module.exports = config;
