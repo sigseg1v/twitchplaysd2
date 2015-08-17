@@ -287,6 +287,8 @@ var actionMap = {
     "map": function (match) { return { key: match[2] ? '{Tab}'.repeat(toActionCount(match[2])) : '{Tab}' }; },
     "quests": function (match) { return { key: match[2] ? '{Q}'.repeat(toActionCount(match[2])) : '{Q}' }; },
     "merc": function (match) { return { key: match[2] ? '{O}'.repeat(toActionCount(match[2])) : '{O}' }; },
+
+    "social": function (match) { return match[2] ? { key: '{Down}'.repeat(toActionCount(match[2])) + '{Enter}' } : {}; },
 };
 
 function rowColToState(row, col, rowMappings, colMappings) {

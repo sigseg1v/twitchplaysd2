@@ -66,6 +66,8 @@ var commands = {
     "map": new RegExp('^(map)([1-9])?$', 'i'),
     "quests": new RegExp('^(quests?)([1-9])?$', 'i'),
     "merc": new RegExp('^(merc)([1-9])?$', 'i'),
+
+    "social": new RegExp('^(social|talk|gossip) ?([1-6])$', 'i'),
 }
 
 var username = process.env.TWITCH_USERNAME || nconf.get('TWITCH_USERNAME');
