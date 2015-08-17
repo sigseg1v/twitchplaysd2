@@ -2,14 +2,14 @@ var nconf = require('nconf').argv().env().file({ file:'config.json' });
 
 var commands = {
     "center": new RegExp('^center$', 'i'),
-    "left": new RegExp('^left$', 'i'),
-    "upleft": new RegExp('^upleft$', 'i'),
-    "up": new RegExp('^up$', 'i'),
-    "upright": new RegExp('^upright$', 'i'),
-    "right": new RegExp('^right$', 'i'),
-    "downright": new RegExp('^downright$', 'i'),
-    "down": new RegExp('^down$', 'i'),
-    "downleft": new RegExp('^downleft$', 'i'),
+    "left": new RegExp('^left([1-3])?$', 'i'),
+    "upleft": new RegExp('^upleft([1-3])?$', 'i'),
+    "up": new RegExp('^up([1-3])?$', 'i'),
+    "upright": new RegExp('^upright([1-3])?$', 'i'),
+    "right": new RegExp('^right([1-3])?$', 'i'),
+    "downright": new RegExp('^downright([1-3])?$', 'i'),
+    "down": new RegExp('^down([1-3])?$', 'i'),
+    "downleft": new RegExp('^downleft([1-3])?$', 'i'),
 
     "str": new RegExp('^str$', 'i'),
     "dex": new RegExp('^dex$', 'i'),

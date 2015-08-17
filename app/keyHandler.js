@@ -72,14 +72,14 @@ var state = {
 
 var actionMap = {
     "center": function () { return { mouse: { x: 400, y: 282 } }; },
-    "left": function () { return { mouse: { x: 360, y: 282 }, key: '{Left}' }; },
-    "upleft": function () { return { mouse: { x: 360, y: 242 } }; },
-    "up": function () { return { mouse: { x: 400, y: 242 }, key: '{Up}' }; },
-    "upright": function () { return { mouse: { x: 440, y: 242 } }; },
-    "right": function () { return { mouse: { x: 440, y: 282 }, key: '{Right}' }; },
-    "downright": function () { return { mouse: { x: 440, y: 322 } }; },
-    "down": function () { return { mouse: { x: 400, y: 322 }, key: '{Down}' }; },
-    "downleft": function () { return { mouse: { x: 360, y: 322 } }; },
+    "left": function (match) { return { mouse: { x: 360 - (toActionCount(match[1], 0, 3) * 50), y: 282 }, key: '{Left}' }; },
+    "upleft": function (match) { return { mouse: { x: 360 - (toActionCount(match[1], 0, 3) * 50), y: 242 - (toActionCount(match[1], 0, 3) * 50) } }; },
+    "up": function (match) { return { mouse: { x: 400, y: 242 - (toActionCount(match[1], 0, 3) * 50) }, key: '{Up}' }; },
+    "upright": function (match) { return { mouse: { x: 440 + (toActionCount(match[1], 0, 3) * 50), y: 242 - (toActionCount(match[1], 0, 3) * 50) } }; },
+    "right": function (match) { return { mouse: { x: 440 + (toActionCount(match[1], 0, 3) * 50), y: 282 }, key: '{Right}' }; },
+    "downright": function (match) { return { mouse: { x: 440 + (toActionCount(match[1], 0, 3) * 50), y: 322 + (toActionCount(match[1], 0, 3) * 50) } }; },
+    "down": function (match) { return { mouse: { x: 400, y: 322 }, key: '{Down}' }; },
+    "downleft": function (match) { return { mouse: { x: 360 - (toActionCount(match[1], 0, 3) * 50), y: 322 + (toActionCount(match[1], 0, 3) * 50) } }; },
 
     "str": function () { return { mouse: { x: 220, y: 150 } }; },
     "dex": function () { return { mouse: { x: 220, y: 215 } }; },
@@ -257,14 +257,16 @@ function rowColToState(row, col, rowMappings, colMappings) {
     }
 }
 
-function toActionCount(str) {
+function toActionCount(str, low, high) {
+    low = (low === undefined) ? 1 : low;
+    high = (high === undefined) ? 9 : high;
     if (str !== undefined && str !== null && str !== "") {
         var num = parseInt(str);
-        if (num >= 1 && num <= 9) {
+        if (num >= low && num <= high) {
             return num;
         }
     }
-    return 1;
+    return low;
 }
 
 function queueCommand(command, args) {
