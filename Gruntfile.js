@@ -2,33 +2,28 @@ module.exports = function (grunt) {
     require('load-grunt-tasks')(grunt);
 
     grunt.initConfig({
-        run: {
+        nodemon: {
             server: {
                 options: {
-                    wait: false
+                    watch: [ 'app/*.ahk', 'app/*.js', 'Gruntfile.js' ],
+                    delay: 1000
                 },
-                args: [ 'app/server.js' ]
+                script: 'app/server.js'
             },
 
             overlay: {
                 options: {
-                    wait: false
+                    watch: [ 'app/overlay_server.js' ],
+                    delay: 1000
                 },
-                args: [ 'app/overlay_server.js' ]
+                script: 'app/overlay_server.js'
             }
         },
 
         watch: {
-            scripts: {
-                files: [ 'app/*.ahk', 'app/*.js', 'Gruntfile.js' ],
-                tasks: [ 'run:server' ],
-                options: {
-                    interrupt: true // kill process and reload
-                }
-            },
-            overlay: {
-                files: [ 'app/overlay_server.js', 'overlay/overlay.js', 'overlay/*.html', 'overlay/lib/**/*.js' ],
-                tasks: [ 'browserify:overlay' ]
+            overlayDataFiles: {
+                files: [ 'overlay/**/*' ],
+                tasks: [ 'overlayForceReload' ]
             }
         },
 
@@ -37,8 +32,21 @@ module.exports = function (grunt) {
                 src: 'overlay/overlay.js',
                 dest: 'overlay/overlay_compiled.js'
             }
+        },
+
+        concurrent: {
+            servers: {
+                tasks: [ 'nodemon:server', 'nodemon:overlay', 'watch:overlayDataFiles' ],
+                options: {
+                    logConcurrentOutput: true
+                }
+            }
         }
     });
 
-    grunt.registerTask('listen', [ 'browserify:overlay', 'run:server', 'run:overlay', 'watch:scripts' /*, 'watch:overlay'*/ ]);
+    grunt.registerTask('listen', [ 'browserify:overlay', 'concurrent:servers' ]);
+
+    grunt.registerTask('overlayForceReload', function () {
+        require('fs').writeFileSync('./temp/overlayReload', 'reload');
+    });
 };
