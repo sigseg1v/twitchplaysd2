@@ -22,7 +22,12 @@ module.exports = function (grunt) {
 
         watch: {
             overlayDataFiles: {
-                files: [ 'overlay/**/*' ],
+                files: [ 'overlay/**/*', '!overlay/overlay_compiled.js' ],
+                tasks: [ 'browserify:overlay' ]
+            },
+
+            overlayCompiled: {
+                files: [ 'overlay/overlay_compiled.js' ],
                 tasks: [ 'overlayForceReload' ]
             }
         },
@@ -36,7 +41,7 @@ module.exports = function (grunt) {
 
         concurrent: {
             servers: {
-                tasks: [ 'nodemon:server', 'nodemon:overlay', 'watch:overlayDataFiles' ],
+                tasks: [ 'nodemon:server', 'nodemon:overlay', 'watch:overlayDataFiles', 'watch:overlayCompiled' ],
                 options: {
                     logConcurrentOutput: true
                 }

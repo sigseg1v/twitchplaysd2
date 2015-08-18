@@ -2,13 +2,13 @@
     var socket = null;
     function MessageViewModel() {
         var self = this;
-        self.username = "username";
-        self.message = "message";
+        self.username = "Username";
+        self.message = "Message";
     }
 
     function OverlayViewModel() {
         var self = this;
-        self.command = ko.observable("command");
+        self.command = ko.observable("Command");
         self.chat = ko.observableArray([ new MessageViewModel(), new MessageViewModel() ]);
     }
 
