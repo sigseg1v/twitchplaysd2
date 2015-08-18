@@ -139,7 +139,7 @@ function pollWindowAlive() {
         if (!result || result[0] !== '0') {
             console.log('Error: Window not found, closing stream and exiting.');
             stopEverything();
-            process.exit(1);
+            process.exit(0);
         } else {
             setTimeout(pollWindowAlive, 5000);
         }
@@ -147,7 +147,7 @@ function pollWindowAlive() {
     promise.error(function () {
         console.log('Error: Error in windowalive script, closing stream and exiting.');
         stopEverything();
-        process.exit(1);
+        process.exit(0);
     });
 }
 pollWindowAlive();
