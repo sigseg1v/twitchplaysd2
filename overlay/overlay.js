@@ -13,7 +13,7 @@
     }
 
     function init() {
-        socket = require('socket.io-client')('http://localhost:3456');
+        socket = require('socket.io-client')();
         socket.on('connect', function () {
             console.log('Connected to overlay socket.io server.');
         });
