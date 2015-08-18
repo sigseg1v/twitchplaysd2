@@ -2,8 +2,17 @@ var express = require('express');
 var overlay = express();
 var server = require('http').Server(overlay);
 var io = require('socket.io')(server);
-var port = process.env.OVERLAY_SOCKET || 3456;
+var port = process.env.OVERLAY_PORT || 3456;
 
+var serverNs = io.of('/server'); // the game server should connect to this namespace to send things to the overlay server
+var clientNs = io.of('/client'); // the overlay client should connect to this namespace to receive things from the overlay server
+
+overlay.use(function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "X-Requested-With");
+    res.header("Access-Control-Allow-Headers", "Content-Type");
+    next();
+});
 overlay.use("/", express.static('./overlay'));
 
 require('fs').watch('temp', function (event, filename) {
@@ -12,6 +21,19 @@ require('fs').watch('temp', function (event, filename) {
         io.emit('reload');
     }
 });
+
+// forward commands and messages to the client
+serverNs.on('connection', function (socket) {
+    socket.on('command', function (command) {
+        console.log('serverns got', command);
+        clientNs.emit('command', command);
+    });
+    socket.on('message', function (data) {
+        console.log('serverns got', data);
+        clientNs.emit('message', data);
+    });
+});
+
 
 console.log('Starting overlay server on :' + port + ' ...');
 server.listen(port, function () {

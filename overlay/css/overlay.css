@@ -1,0 +1,27 @@
+html {
+    width: 267px;
+    height: 600px;
+}
+body {
+    color: white;
+    overflow-y: hidden;
+    padding: 5px;
+}
+.no-overflow {
+    overflow: hidden;
+}
+.username {
+    font-weight: bold;
+    width: calc(100% - 10px);
+    display: inline-block;
+}
+.message {
+    display: inline-block;
+}
+.command-title {
+    font-size: 18px;
+    display: inline-block;
+}
+.command {
+    display: inline-block;
+}

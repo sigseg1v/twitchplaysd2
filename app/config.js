@@ -83,6 +83,8 @@ var sendKey = process.env.CONFIG_SEND_KEY || nconf.get('CONFIG_SEND_KEY');
 var serverIP = process.env.TWITCH_IP || nconf.get('TWITCH_IP');
 var filteredCommands = process.env.CONFIG_FILTERED_COMMANDS || nconf.get('CONFIG_FILTERED_COMMANDS');
 var throttledCommands = process.env.CONFIG_THROTTLED_COMMANDS || nconf.get('CONFIG_THROTTLED_COMMANDS');
+var overlayHost = process.env.OVERLAY_HOST || nconf.get('OVERLAY_HOST');
+var overlayPort = process.env.OVERLAY_PORT || nconf.get('OVERLAY_PORT');
 
 var config = {
     // Either 'windows' or 'other'
@@ -105,6 +107,11 @@ var config = {
     obsRemoteServer: obsRemoteServer,
     // pw for http://www.obsremote.com
     obsRemotePw: obsRemotePw,
+
+    // for sending data to the overlay server
+    overlayConnectionEnable: !!(overlayHost || overlayPort),
+    overlayHost: overlayHost || 'http://localhost',
+    overlayPort: overlayPort || 3456,
 
     // If you want to print usernames/commands like in twitchplayspokemon
     printToConsole: true,

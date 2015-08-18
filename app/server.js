@@ -6,6 +6,8 @@ var OBSRemote = require('obs-remote');
 var obs = new OBSRemote();
 var Promise = require('bluebird');
 var exec = Promise.promisify(require('child_process').exec);
+var EventEmitter = require('events').EventEmitter;
+var events = new EventEmitter();
 
 var client = new irc.Client(config.server, config.nick, {
     channels: [config.channel],
@@ -69,6 +71,19 @@ if (config.obsRemoteEnable) {
     console.log('Connecting to OBSRemote...');
 }
 
+if (config.overlayConnectionEnable) {
+    var io = require('socket.io-client')(config.overlayHost + ':' + config.overlayPort + '/server');
+    io.on('connect', function () {
+        console.log('Server connected to overlay server socket.');
+        events.on('message', function (data) {
+            io.emit('message', data);
+        });
+        events.on('command', function (data) {
+            io.emit('command', data);
+        });
+    });
+}
+
 function isWindowAlive() {
     return exec('autohotkey ./app/windowalive.ahk');
 }
@@ -87,9 +102,9 @@ client.addListener('message' + config.channel, function(from, message) {
         match = message.match(item.re);
         if (match) {
             command = item.command;
-            return true;
+            events.emit('message', { name: from, message: message, match: !!match });
         }
-        return false;
+        return !!match;
     })) {
         if (config.printToConsole) {
             //format console output if needed
@@ -126,6 +141,7 @@ function getAndExecuteCommand() {
         console.log('executing action', command);
         keyHandler.clearCommandQueue();
         keyHandler.executeAction(command).finally(getAndExecuteCommand);
+        events.emit('command', command);
     } else {
         setTimeout(getAndExecuteCommand, 500);
     }

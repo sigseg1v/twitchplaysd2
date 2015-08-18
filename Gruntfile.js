@@ -14,7 +14,10 @@ module.exports = function (grunt) {
             overlay: {
                 options: {
                     watch: [ 'app/overlay_server.js' ],
-                    delay: 1000
+                    delay: 1000,
+                    env: {
+                        OVERLAY_PORT: 3456
+                    }
                 },
                 script: 'app/overlay_server.js'
             }
