@@ -17,6 +17,7 @@ body {
 }
 .message {
     display: inline-block;
+    float: right;
 }
 .command-title {
     font-size: 18px;

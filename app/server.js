@@ -136,12 +136,12 @@ client.connect();
 console.log('Connecting...');
 
 function getAndExecuteCommand() {
-    var command = keyHandler.getMostPopularCommand();
-    if (command !== null) {
-        console.log('executing action', command);
+    var action = keyHandler.getMostPopularAction();
+    if (action !== null) {
+        console.log('executing action', action.action);
         keyHandler.clearCommandQueue();
-        keyHandler.executeAction(command).finally(getAndExecuteCommand);
-        events.emit('command', command);
+        keyHandler.executeAction(action.action).finally(getAndExecuteCommand);
+        events.emit('command', action.name);
     } else {
         setTimeout(getAndExecuteCommand, 500);
     }

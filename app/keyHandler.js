@@ -332,40 +332,39 @@ function queueCommand(command, args) {
         var key = JSON.stringify(actionPayload);
         if (!commandAggregator[key]) {
             var val = {
-                payload: actionPayload,
+                action: actionPayload,
+                name: command,
                 count: 1
             };
             commandAggregator[key] = val;
         } else {
             commandAggregator[key].count++;
         }
-
-        executeAction(actionPayload);
     }
 }
 
-function getMostPopularCommand() {
+function getMostPopularAction() {
     var highestCount = 0;
     var current;
     var count;
-    var payload = null;
+    var out = null;
     var keys = Object.keys(commandAggregator);
     for (var i = 0, len = keys.length; i < len; i++) {
         var current = commandAggregator[keys[i]];
         count = current.count;
         if (count > highestCount) {
             highestCount = count;
-            payload = current.payload;
+            out = current;
         }
     }
-    return payload;
+    return out;
 }
 
 function clearCommandQueue() {
     commandAggregator = {};
 }
 
-function executeAction(action) {
+function executeAction(action, commandName) {
     var promises = [];
     if (action.hasOwnProperty('key')) {
         //if xdotool is installed
@@ -401,7 +400,7 @@ setWindowID();
 
 module.exports = {
     queueCommand: queueCommand,
-    getMostPopularCommand: getMostPopularCommand,
+    getMostPopularAction: getMostPopularAction,
     clearCommandQueue: clearCommandQueue,
     executeAction: executeAction
 };

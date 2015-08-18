@@ -25,11 +25,9 @@ require('fs').watch('temp', function (event, filename) {
 // forward commands and messages to the client
 serverNs.on('connection', function (socket) {
     socket.on('command', function (command) {
-        console.log('serverns got', command);
         clientNs.emit('command', command);
     });
     socket.on('message', function (data) {
-        console.log('serverns got', data);
         clientNs.emit('message', data);
     });
 });
