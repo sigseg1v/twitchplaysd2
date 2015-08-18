@@ -2,6 +2,7 @@ var express = require('express');
 var overlay = express();
 var server = require('http').Server(overlay);
 var io = require('socket.io')(server);
+var port = process.env.OVERLAY_SOCKET || 3456;
 
 overlay.use("/", express.static('./overlay'));
 
@@ -12,7 +13,7 @@ require('fs').watch('temp', function (event, filename) {
     }
 });
 
-console.log('Starting overlay server on :3456 ...');
-server.listen(3456, function () {
+console.log('Starting overlay server on :' + port + ' ...');
+server.listen(port, function () {
     console.log('Overlay server started.');
 });
