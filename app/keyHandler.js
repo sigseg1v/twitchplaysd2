@@ -407,10 +407,10 @@ function clearCommandQueue(type) {
 
 function executeAction(action) {
     var promises = [];
-    if (action.hasOwnProperty('key')) {
+    if (action.key) {
         promises.push(exec('autohotkey ./app/sendkey.ahk ' + action.key));
     }
-    if (action.hasOwnProperty('mouse')) {
+    if (action.mouse) {
         if (action.mouse.hasOwnProperty('x') && action.mouse.hasOwnProperty('y')) {
             state.mouseX = action.mouse.x;
             state.mouseY = action.mouse.y;

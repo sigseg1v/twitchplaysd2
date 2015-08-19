@@ -147,19 +147,24 @@ function startCommandListenLoop(type) {
             var actionObj = data.action;
             console.log('executing', type, actionObj);
             keyHandler.clearCommandQueue(type);
-            keyHandler.executeAction(actionObj).finally(getAndExecuteCommand);
+            var promise = keyHandler.executeAction(actionObj);
+            promise.then(getAndExecuteCommand);
+            promise.catch(function () {
+                console.log('Caught error while executing', type, actionObj);
+                setTimeout(getAndExecuteCommand, 500);
+            });
             events.emit('command', {
                 type: type,
                 description: actionObj.desc
             });
         } else {
-            setTimeout(getAndExecuteCommand, 500);
-
             // tell those that are listening that there was no command to run
             events.emit('command', {
                 type: type,
                 description: ''
             });
+
+            setTimeout(getAndExecuteCommand, 500);
         }
     }
     getAndExecuteCommand();
