@@ -14,19 +14,17 @@ if (hwnd) {
     WinActivate, ahk_id %hwnd%
     IfWinActive, ahk_id %hwnd%
     {
-        BlockInput On
+        ;BlockInput On
+        ; move mouse once and click after, so we can have new directional input while this runs
+        MouseMove, %1%, %2%, 0
         Loop %loops% {
-            MouseMove, %1%, %2%, 0
-            ;if (%A_Index% == %loops%) {
+            ; only click if the window is active right now
+            IfWinActive, ahk_id %hwnd%
+            {
                 MouseClick, %3%, , , , 0
-                Sleep 250
-            ;} else {
-            ;    MouseClick, %3%, , , , 0, D
-            ;    Sleep 250
-            ;    MouseClick, %3%, , , , 0, U
-            ;    Sleep 50
-            ;}
+            }
+            Sleep 250
         }
-        BlockInput Off
+        ;BlockInput Off
     }
 }
