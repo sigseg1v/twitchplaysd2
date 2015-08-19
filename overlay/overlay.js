@@ -8,7 +8,8 @@
 
     function OverlayViewModel() {
         var self = this;
-        self.command = ko.observable("");
+        self.actionCommand = ko.observable("");
+        self.movementCommand = ko.observable("");
         self.chat = ko.observableArray();
     }
 
@@ -29,7 +30,18 @@
             }
         });
         socket.on('command', function (command) {
-            vm.command(command || '');
+            if (command) {
+                if (command.type === 'action') {
+                    vm.actionCommand(command.description || '');
+                } else if (command.type === 'movement') {
+                    if (command.description) {
+                        // only clear the mouse if there is a new location, since it will stay where it was left
+                        vm.movementCommand(command.description);
+                    }
+                }
+            } else {
+                console.log('Unknown command received:', command);
+            }
         });
 
         ko.applyBindings(vm);

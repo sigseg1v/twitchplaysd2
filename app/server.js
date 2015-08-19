@@ -135,18 +135,36 @@ client.addListener('registered', function () {
 client.connect();
 console.log('Connecting...');
 
-function getAndExecuteCommand() {
-    var action = keyHandler.getMostPopularAction();
-    if (action !== null) {
-        console.log('executing action', action.action);
-        keyHandler.clearCommandQueue();
-        keyHandler.executeAction(action.action).finally(getAndExecuteCommand);
-        events.emit('command', action.name);
-    } else {
-        setTimeout(getAndExecuteCommand, 500);
+var commandTypes = keyHandler.getCommandTypes();
+commandTypes.forEach(function (commandType) {
+    startCommandListenLoop(commandType);
+});
+
+function startCommandListenLoop(type) {
+    function getAndExecuteCommand() {
+        var data = keyHandler.getMostPopularAction(type);
+        if (data !== null && data.action !== null) {
+            var actionObj = data.action;
+            console.log('executing', type, actionObj);
+            keyHandler.clearCommandQueue(type);
+            keyHandler.executeAction(actionObj).finally(getAndExecuteCommand);
+            events.emit('command', {
+                type: type,
+                description: actionObj.desc
+            });
+        } else {
+            setTimeout(getAndExecuteCommand, 500);
+
+            // tell those that are listening that there was no command to run
+            events.emit('command', {
+                type: type,
+                description: ''
+            });
+        }
     }
+    getAndExecuteCommand();
 }
-getAndExecuteCommand();
+
 console.log('Listening for commands...');
 
 function pollWindowAlive() {

@@ -1,6 +1,8 @@
 var nconf = require('nconf').argv().env().file({ file:'config.json' });
 
 var commands = {
+    "esc": new RegExp('^esc$'),
+    
     "center": new RegExp('^center$', 'i'),
     "left": new RegExp('^left ?([1-3])?$', 'i'),
     "upleft": new RegExp('^upleft ?([1-3])?$', 'i'),
@@ -127,11 +129,8 @@ var config = {
     filteredCommands: filteredCommands || [],
 
     // If you want to prevent people from using from command too often
-    // Ex: ["start"]
-    throttledCommands: throttledCommands || [],
-    // Throttle time in seconds
-    // Ex: you can limit 'start' so it's only used every 10 sec
-    timeToWait: 10000,
+    // Ex: { "esc": 30000, "start": 30000 }
+    throttledCommands: throttledCommands || {},
 
     // Linux: delay between each possible keypress in ms (can't be too fast)
     // If you want to change delay for windows - change key.py
