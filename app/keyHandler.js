@@ -97,7 +97,7 @@ function MouseAction(mouse, key, desc) {
 MouseAction.prototype = Object.create(Action.prototype, { constructor: { value: MouseAction } });
 
 var actionMap = {
-    "esc": function () { return new Action('{Esc}{Space}'); }, // use space to close esc menu -- this is just for resurrection of dead player
+    "esc": function () { return new Action('{Esc}{Space}').description('esc'); }, // this is just for resurrection of dead player -- it is actually overridden, but this is a fallback
     "center": function () { return new MouseAction({ x: 400, y: 282 }).description('center'); },
     "left": function (match) { return new MouseAction({ x: 360 - (toActionCount(match[1], 0, 3) * 50), y: 282 }, '{Left}').description(descriptionFormat('left', match[1])); },
     "upleft": function (match) { return new MouseAction({ x: 360 - (toActionCount(match[1], 0, 3) * 50), y: 242 - (toActionCount(match[1], 0, 3) * 50) }).description(descriptionFormat('upleft', match[1])); },
@@ -365,7 +365,7 @@ function queueCommand(command, args) {
             if (!commandGroup[key]) {
                 var val = {
                     action: actionObject,
-                    name: command,
+                    commandId: command,
                     count: 1
                 };
                 commandGroup[key] = val;
@@ -405,25 +405,30 @@ function clearCommandQueue(type) {
     }
 }
 
-function executeAction(action) {
+function executeAction(action, command) {
     var promises = [];
-    if (action.key) {
-        promises.push(exec('autohotkey ./app/sendkey.ahk ' + action.key));
-    }
-    if (action.mouse) {
-        if (action.mouse.hasOwnProperty('x') && action.mouse.hasOwnProperty('y')) {
-            state.mouseX = action.mouse.x;
-            state.mouseY = action.mouse.y;
+    if (command == 'esc') {
+        // escape is dangerous in d2, so we have a special script that executes it safely
+        promises.push(exec('autohotkey ./app/esckeyd2.ahk'));
+    } else {
+        if (action.key) {
+            promises.push(exec('autohotkey ./app/sendkey.ahk ' + action.key));
         }
-        var x = state.mouseX;
-        var y = state.mouseY;
-        if (!action.mouse.left && !action.mouse.right) {
-            promises.push(exec('autohotkey ./app/movemouse.ahk ' + x + ' ' + y));
-        } else {
-            if (action.mouse.left) {
-                promises.push(exec('autohotkey ./app/clickmouseat.ahk ' + x + ' ' + y + ' left ' + (action.mouse.count || '1')));
-            } else if (action.mouse.right) {
-                promises.push(exec('autohotkey ./app/clickmouseat.ahk ' + x + ' ' + y + ' right ' + (action.mouse.count || '1')));
+        if (action.mouse) {
+            if (action.mouse.hasOwnProperty('x') && action.mouse.hasOwnProperty('y')) {
+                state.mouseX = action.mouse.x;
+                state.mouseY = action.mouse.y;
+            }
+            var x = state.mouseX;
+            var y = state.mouseY;
+            if (!action.mouse.left && !action.mouse.right) {
+                promises.push(exec('autohotkey ./app/movemouse.ahk ' + x + ' ' + y));
+            } else {
+                if (action.mouse.left) {
+                    promises.push(exec('autohotkey ./app/clickmouseat.ahk ' + x + ' ' + y + ' left ' + (action.mouse.count || '1')));
+                } else if (action.mouse.right) {
+                    promises.push(exec('autohotkey ./app/clickmouseat.ahk ' + x + ' ' + y + ' right ' + (action.mouse.count || '1')));
+                }
             }
         }
     }

@@ -145,9 +145,9 @@ function startCommandListenLoop(type) {
         var data = keyHandler.getMostPopularAction(type);
         if (data !== null && data.action !== null) {
             var actionObj = data.action;
-            console.log('executing', type, actionObj);
+            console.log('executing', type, actionObj.desc);
             keyHandler.clearCommandQueue(type);
-            var promise = keyHandler.executeAction(actionObj);
+            var promise = keyHandler.executeAction(actionObj, data.commandId);
             promise.then(getAndExecuteCommand);
             promise.catch(function () {
                 console.log('Caught error while executing', type, actionObj);

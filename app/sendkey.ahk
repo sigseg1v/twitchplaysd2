@@ -8,8 +8,8 @@ if (hwnd) {
     WinActivate, ahk_id %hwnd%
     IfWinActive, ahk_id %hwnd%
     {
-        BlockInput On
+        ;BlockInput On
         Send %1%
-        BlockInput Off
+        ;BlockInput Off
     }
 }
