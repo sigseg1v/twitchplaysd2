@@ -96,8 +96,12 @@ function MouseAction(mouse, key, desc) {
 }
 MouseAction.prototype = Object.create(Action.prototype, { constructor: { value: MouseAction } });
 
+var specialActions = {
+    ESCAPE: new Action('{Esc}{Space}').description('esc') // this is for resurrection of dead player -- the actual command is a separate script, so the keys here are for fallback
+};
+
 var actionMap = {
-    "esc": function () { return new Action('{Esc}{Space}').description('esc'); }, // this is just for resurrection of dead player -- it is actually overridden, but this is a fallback
+    "esc": function () { return specialActions.ESCAPE; },
     "center": function () { return new MouseAction({ x: 400, y: 282 }).description('center'); },
     "left": function (match) { return new MouseAction({ x: 360 - (toActionCount(match[1], 0, 3) * 50), y: 282 }, '{Left}').description(descriptionFormat('left', match[1])); },
     "upleft": function (match) { return new MouseAction({ x: 360 - (toActionCount(match[1], 0, 3) * 50), y: 242 - (toActionCount(match[1], 0, 3) * 50) }).description(descriptionFormat('upleft', match[1])); },
@@ -407,7 +411,7 @@ function clearCommandQueue(type) {
 
 function executeAction(action, command) {
     var promises = [];
-    if (command == 'esc') {
+    if (action === specialActions.ESCAPE) {
         // escape is dangerous in d2, so we have a special script that executes it safely
         promises.push(exec('autohotkey ./app/esckeyd2.ahk'));
     } else {
