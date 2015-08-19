@@ -1,9 +1,14 @@
 (function () {
+    var CHAT_FADE_TIME_MS = 30000;
+
     var socket = null;
+    var chatMessageFadeInterval = undefined;
+
     function MessageViewModel(username, message, valid) {
         var self = this;
         self.username = username || "";
         self.message = message || "";
+        self.time = new Date();
     }
 
     function OverlayViewModel() {
@@ -43,6 +48,18 @@
                 console.log('Unknown command received:', command);
             }
         });
+
+        clearInterval(chatMessageFadeInterval);
+        chatMessageFadeInterval = setInterval(function () {
+            var list = vm.chat();
+            var now = new Date();
+            for (var i = 0, len = list.length; i < len; i++) {
+                if (now - list[i].time > CHAT_FADE_TIME_MS) {
+                    vm.chat.splice(i, vm.chat().length - i);
+                    break;
+                }
+            }
+        }, 5000);
 
         ko.applyBindings(vm);
     }

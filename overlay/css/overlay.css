@@ -25,4 +25,10 @@ body {
 }
 .command {
     display: inline-block;
+    font-weight: bold;
+}
+.chat-frame {
+    margin-top: 5px;
+    padding-top: 5px;
+    border-top: 1px solid;
 }
