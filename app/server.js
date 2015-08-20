@@ -81,6 +81,9 @@ if (config.overlayConnectionEnable) {
         events.on('command', function (data) {
             io.emit('command', data);
         });
+        events.on('vote', function (data) {
+            io.emit('vote', data);
+        });
     });
 }
 
@@ -170,7 +173,7 @@ function startCommandListenLoop(type) {
             // tell those that are listening that there was no command to run
             events.emit('command', {
                 type: type,
-                description: ''
+                idle: true
             });
 
             setTimeout(getAndExecuteCommand, 500);

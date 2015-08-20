@@ -14,10 +14,12 @@ body {
     font-weight: bold;
     width: calc(100% - 10px);
     display: inline-block;
+    white-space: nowrap;
 }
 .message {
     display: inline-block;
     float: right;
+    white-space: nowrap;
 }
 .command-title {
     font-size: 18px;

@@ -117,12 +117,16 @@
             if (command) {
                 if (command.type === 'action') {
                     vm.actionCommand(command.description || '');
-                    vm.actionVoteMap({});
+                    if (vm.actionVoteList().length !== 0) {
+                        vm.actionVoteMap({});
+                    }
                 } else if (command.type === 'movement') {
-                    vm.movementVoteMap({});
                     if (command.description) {
                         // only clear the mouse if there is a new location, since it will stay where it was left
                         vm.movementCommand(command.description);
+                    }
+                    if (vm.movementVoteList().length !== 0) {
+                        vm.movementVoteMap({});
                     }
                 }
             } else {
@@ -137,7 +141,7 @@
             } else if (data.group === 'movement') {
                 var voteMap = vm.movementVoteMap();
                 voteMap[data.id] = data;
-                vm.movementVoteMap(voteMap);;
+                vm.movementVoteMap(voteMap);
             }
         });
 
