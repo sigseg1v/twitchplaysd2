@@ -18,7 +18,7 @@ overlay.use("/", express.static('./overlay'));
 require('fs').watch('temp', function (event, filename) {
     if (filename === 'overlayReload' && event === 'change') {
         console.log('Refreshing overlay...');
-        io.emit('reload');
+        clientNs.emit('reload');
     }
 });
 
