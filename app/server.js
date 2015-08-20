@@ -100,7 +100,6 @@ client.addListener('message' + config.channel, function(from, message) {
     var command = null;
     if (commandRegexes.some(function (item) {
         match = message.match(item.re);
-        events.emit('message', { name: from, message: message, match: !!match });
         if (match) {
             command = item.command;
         }
@@ -122,6 +121,7 @@ client.addListener('message' + config.channel, function(from, message) {
             events.emit('vote', { count: queued.count, id: queued.commandId, description: queued.desc, group: queued.action.group });
         }
     }
+    events.emit('message', { name: from, message: message, match: !!match });
 });
 
 client.addListener('error', function(message) {

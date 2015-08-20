@@ -10,15 +10,27 @@
         var self = this;
         self.username = username || "";
         self.message = message || "";
+        self.valid = !!valid;
         self.time = new Date();
     }
 
     function OverlayViewModel() {
         var self = this;
-        self.actionCommand = ko.observable("");
-        self.movementCommand = ko.observable("");
+        self.actionCommand = ko.observable("").extend({ notify: 'always' });
+        self.movementCommand = ko.observable("").extend({ notify: 'always' });
         self.chat = ko.observableArray();
-        self.voteMap = ko.observable
+        self.actionVoteMap = ko.observable({}).extend({ notify: 'always' });
+        self.movementVoteMap = ko.observable({}).extend({ notify: 'always' });
+        self.actionVoteList = ko.pureComputed(function () {
+            return Object.keys(self.actionVoteMap()).map(function (key) {
+                return self.actionVoteMap()[key];
+            });
+        });
+        self.movementVoteList = ko.pureComputed(function () {
+            return Object.keys(self.movementVoteMap()).map(function (key) {
+                return self.movementVoteMap()[key];
+            });
+        });
     }
 
     function createD3Chart(selector, data) {
@@ -58,8 +70,6 @@
             path.transition().duration(500).attrTween("d", arcTween); // redraw the arcs
         }
 
-        setTimeout(function () { data[3].count+=5; update(data);},5000);
-
         function arcTween(a) {
             var i = d3.interpolate(this._current, a);
             this._current = i(0);
@@ -79,8 +89,18 @@
 
     function init() {
         var vm = new OverlayViewModel();
-
         socket = require('socket.io-client')('http://localhost:3456/client');
+
+        var actionVoteChart = createD3Chart(".action-vote .vis", []);
+        var movementVoteChart = createD3Chart(".movement-vote .vis", []);
+
+        vm.actionVoteList.subscribe(function (list) {
+            actionVoteChart.update(list);
+        });
+        vm.movementVoteList.subscribe(function (list) {
+            movementVoteChart.update(list);
+        });
+
         socket.on('connect', function () {
             console.log('Connected to overlay socket.io server.');
         });
@@ -97,7 +117,9 @@
             if (command) {
                 if (command.type === 'action') {
                     vm.actionCommand(command.description || '');
+                    vm.actionVoteMap({});
                 } else if (command.type === 'movement') {
+                    vm.movementVoteMap({});
                     if (command.description) {
                         // only clear the mouse if there is a new location, since it will stay where it was left
                         vm.movementCommand(command.description);
@@ -108,7 +130,15 @@
             }
         });
         socket.on('vote', function (data) {
-            //events.emit('vote', { count: queued.count, id: queued.commandId, description: queued.desc, group: queued.action.group });
+            if (data.group === 'action') {
+                var voteMap = vm.actionVoteMap();
+                voteMap[data.id] = data;
+                vm.actionVoteMap(voteMap);
+            } else if (data.group === 'movement') {
+                var voteMap = vm.movementVoteMap();
+                voteMap[data.id] = data;
+                vm.movementVoteMap(voteMap);;
+            }
         });
 
         clearInterval(chatMessageFadeInterval);
@@ -122,8 +152,6 @@
                 }
             }
         }, 5000);
-
-        var actionVoteChart = createD3Chart(".actionVote .vis", [{ id: 1, count: 1 }, { id: 2, count: 2 }, { id: 3, count: 3 }, { id: 4, count: 4 }, { id: 5, count: 5 }]);
 
         ko.applyBindings(vm);
     }

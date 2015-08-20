@@ -32,3 +32,15 @@ body {
     padding-top: 5px;
     border-top: 1px solid;
 }
+.action-vote {
+
+}
+.movement-vote {
+
+}
+.command-invalid {
+    color: #ff7070;
+}
+.command-valid {
+    color: lightgreen;
+}
