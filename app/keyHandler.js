@@ -12,10 +12,21 @@ for (var i = 0; i < throttledCommandList.length; i++) {
     lastTime[throttledCommandList[i]] = new Date().getTime();
 }
 
-var commandAggregator = {
-    'action': {},
-    'movement': {}
-};
+var commandTypes = {
+    'action': {
+        minDelay: 3000
+    },
+    'movement': {
+        minDelay: 3000
+    }
+}
+
+var commandAggregator = {};
+Object.keys(commandTypes).forEach(function (type) {
+    commandAggregator[type] = {};
+});
+
+var commandSequenceNumber = 1;
 
 var mouseMappings = {
     treeTab: [220,330,420],
@@ -74,6 +85,7 @@ function Action(key, mouse, desc) {
     self.group = 'action';
 }
 Action.prototype.toJSON = function () {
+    // this, stringified, is literally the key to determine whether two objects are equal, so don't add extra properties
     var ret = {};
     if (this.key) {
         ret.key = this.key;
@@ -349,6 +361,7 @@ function descriptionFormat(command, countStr) {
 }
 
 function queueCommand(command, args) {
+    var output = null;
     if (!command.match(regexFilter)) {
         if (!actionMap.hasOwnProperty(command)) {
             return;
@@ -369,15 +382,18 @@ function queueCommand(command, args) {
             if (!commandGroup[key]) {
                 var val = {
                     action: actionObject,
-                    commandId: command,
+                    commandKey: command,
+                    commandId: commandSequenceNumber++,
                     count: 1
                 };
                 commandGroup[key] = val;
             } else {
                 commandGroup[key].count++;
             }
+            output = commandGroup[key];
         }
     }
+    return output;
 }
 
 function getMostPopularAction(type) {
@@ -409,14 +425,18 @@ function clearCommandQueue(type) {
     }
 }
 
-function executeAction(action, command) {
+function executeAction(action) {
     var promises = [];
     if (action === specialActions.ESCAPE) {
         // escape is dangerous in d2, so we have a special script that executes it safely
-        promises.push(exec('autohotkey ./app/esckeyd2.ahk'));
+        if (config.sendKey) {
+            promises.push(exec('autohotkey ./app/esckeyd2.ahk'));
+        }
     } else {
         if (action.key) {
-            promises.push(exec('autohotkey ./app/sendkey.ahk ' + action.key));
+            if (config.sendKey) {
+                promises.push(exec('autohotkey ./app/sendkey.ahk ' + action.key));
+            }
         }
         if (action.mouse) {
             if (action.mouse.hasOwnProperty('x') && action.mouse.hasOwnProperty('y')) {
@@ -426,12 +446,18 @@ function executeAction(action, command) {
             var x = state.mouseX;
             var y = state.mouseY;
             if (!action.mouse.left && !action.mouse.right) {
-                promises.push(exec('autohotkey ./app/movemouse.ahk ' + x + ' ' + y));
+                if (config.sendKey) {
+                    promises.push(exec('autohotkey ./app/movemouse.ahk ' + x + ' ' + y));
+                }
             } else {
                 if (action.mouse.left) {
-                    promises.push(exec('autohotkey ./app/clickmouseat.ahk ' + x + ' ' + y + ' left ' + (action.mouse.count || '1')));
+                    if (config.sendKey) {
+                        promises.push(exec('autohotkey ./app/clickmouseat.ahk ' + x + ' ' + y + ' left ' + (action.mouse.count || '1')));
+                    }
                 } else if (action.mouse.right) {
-                    promises.push(exec('autohotkey ./app/clickmouseat.ahk ' + x + ' ' + y + ' right ' + (action.mouse.count || '1')));
+                    if (config.sendKey) {
+                        promises.push(exec('autohotkey ./app/clickmouseat.ahk ' + x + ' ' + y + ' right ' + (action.mouse.count || '1')));
+                    }
                 }
             }
         }
@@ -444,5 +470,6 @@ module.exports = {
     getMostPopularAction: getMostPopularAction,
     clearCommandQueue: clearCommandQueue,
     executeAction: executeAction,
-    getCommandTypes: function () { return Object.keys(commandAggregator); }
+    getCommandTypes: function () { return Object.keys(commandTypes); },
+    getOptionsForType: function (type) { return commandTypes[type]; }
 };

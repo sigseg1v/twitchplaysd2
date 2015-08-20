@@ -20,12 +20,13 @@
             <span class="command" data-bind="text: movementCommand"></span>
         </div>
     </div>
-    <div>
-        <div class="chat-frame" data-bind="foreach: chat">
-            <div class="pure-g">
-                <div class="pure-u-2-5 no-overflow"><span class="username no-overflow" data-bind="text: username"></span></div>
-                <div class="pure-u-3-5 no-overflow"><span class="message no-overflow" data-bind="text: message"></span></div>
-            </div>
+    <div class="actionVote">
+        <div class="vis"></div>
+    </div>
+    <div class="chat-frame" data-bind="foreach: chat">
+        <div class="pure-g">
+            <div class="pure-u-2-5 no-overflow"><span class="username no-overflow" data-bind="text: username"></span></div>
+            <div class="pure-u-3-5 no-overflow"><span class="message no-overflow" data-bind="text: message"></span></div>
         </div>
     </div>
 </body>

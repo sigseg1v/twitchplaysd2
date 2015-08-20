@@ -30,6 +30,9 @@ serverNs.on('connection', function (socket) {
     socket.on('message', function (data) {
         clientNs.emit('message', data);
     });
+    socket.on('vote', function (data) {
+        clientNs.emit('vote', data);
+    });
 });
 
 

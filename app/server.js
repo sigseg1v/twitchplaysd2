@@ -100,9 +100,9 @@ client.addListener('message' + config.channel, function(from, message) {
     var command = null;
     if (commandRegexes.some(function (item) {
         match = message.match(item.re);
+        events.emit('message', { name: from, message: message, match: !!match });
         if (match) {
             command = item.command;
-            events.emit('message', { name: from, message: message, match: !!match });
         }
         return !!match;
     })) {
@@ -117,9 +117,9 @@ client.addListener('message' + config.channel, function(from, message) {
                 logFrom, logMessage));
         }
 
-        // Should the message be sent the program?
-        if (config.sendKey) {
-            keyHandler.queueCommand(command, match);
+        var queued = keyHandler.queueCommand(command, match);
+        if (queued) {
+            events.emit('vote', { count: queued.count, id: queued.commandId, description: queued.desc, group: queued.action.group });
         }
     }
 });
@@ -135,24 +135,33 @@ client.addListener('registered', function () {
 client.connect();
 console.log('Connecting...');
 
+function promiseDelay(delay) {
+    var deferred = Promise.pending();
+    setTimeout(function () { deferred.resolve(); }, delay);
+    return deferred.promise;
+}
+
 var commandTypes = keyHandler.getCommandTypes();
 commandTypes.forEach(function (commandType) {
     startCommandListenLoop(commandType);
 });
 
 function startCommandListenLoop(type) {
+    var options = keyHandler.getOptionsForType(type);
     function getAndExecuteCommand() {
         var data = keyHandler.getMostPopularAction(type);
         if (data !== null && data.action !== null) {
             var actionObj = data.action;
             console.log('executing', type, actionObj.desc);
             keyHandler.clearCommandQueue(type);
-            var promise = keyHandler.executeAction(actionObj, data.commandId);
-            promise.then(getAndExecuteCommand);
-            promise.catch(function () {
-                console.log('Caught error while executing', type, actionObj);
-                setTimeout(getAndExecuteCommand, 500);
-            });
+            var options = keyHandler.getOptionsForType(type);
+            var actionPromise = keyHandler.executeAction(actionObj);
+            Promise.all(options.minDelay ? [actionPromise, promiseDelay(options.minDelay)] : [actionPromise])
+                .catch(function () {
+                    console.log('Caught error while executing', type, actionObj);
+                })
+                .finally(getAndExecuteCommand);
+
             events.emit('command', {
                 type: type,
                 description: actionObj.desc
