@@ -56,18 +56,19 @@
             .append("g")
                 .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
 
-        var path = svg.selectAll("path").data(pie(data), keyFunc);
-        path.enter()
-            .append("path")
-                .attr("fill", function(d, i) { return color(i); })
-                .attr("d", arc)
-                .each(function(d) { this._current = d; }); // store the initial angles so we can use to tween
-        path.exit()
-            .remove();
+        update(data);
 
         function update(data) {
-            path = path.data(pie(data), keyFunc);
-            path.transition().duration(500).attrTween("d", arcTween); // redraw the arcs
+            var path = svg.selectAll("path").data(pie(data), keyFunc);
+            path.enter()
+                .append("path")
+                    .attr("fill", function(d, i) { return color(i); })
+                    .attr("d", arc)
+                    .each(function(d) { this._current = d; }); // store the initial angles so we can use to tween
+            path.transition()
+                .duration(500).attrTween("d", arcTween); // redraw the arcs
+            path.exit()
+                .remove();
         }
 
         function arcTween(a) {
@@ -92,6 +93,9 @@
         socket = require('socket.io-client')('http://localhost:3456/client');
 
         var actionVoteChart = createD3Chart(".action-vote .vis", []);
+        actionVoteChart.update([{id: 1, count:1}, {id:2, count: 2}]);
+        var i = 1;
+        setInterval(function() { actionVoteChart.update([{id: 1, count:i++}, {id:2, count: 2}]); }, 1000);
         var movementVoteChart = createD3Chart(".movement-vote .vis", []);
 
         vm.actionVoteList.subscribe(function (list) {
