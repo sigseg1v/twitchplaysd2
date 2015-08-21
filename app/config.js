@@ -2,7 +2,7 @@ var nconf = require('nconf').argv().env().file({ file:'config.json' });
 
 var commands = {
     "esc": new RegExp('^esc$'),
-    
+
     "center": new RegExp('^center$', 'i'),
     "left": new RegExp('^left ?([1-3])?$', 'i'),
     "upleft": new RegExp('^upleft ?([1-3])?$', 'i'),
@@ -87,6 +87,8 @@ var filteredCommands = process.env.CONFIG_FILTERED_COMMANDS || nconf.get('CONFIG
 var throttledCommands = process.env.CONFIG_THROTTLED_COMMANDS || nconf.get('CONFIG_THROTTLED_COMMANDS');
 var overlayHost = process.env.OVERLAY_HOST || nconf.get('OVERLAY_HOST');
 var overlayPort = process.env.OVERLAY_PORT || nconf.get('OVERLAY_PORT');
+var keyRepeatDelay = process.env.KEY_REPEAT_DELAY || nconf.get('KEY_REPEAT_DELAY');
+var mouseRepeatDelay = process.env.MOUSE_REPEAT_DELAY || nconf.get('MOUSE_REPEAT_DELAY');
 
 var config = {
     // Either 'windows' or 'other'
@@ -132,9 +134,8 @@ var config = {
     // Ex: { "esc": 30000, "start": 30000 }
     throttledCommands: throttledCommands || {},
 
-    // Linux: delay between each possible keypress in ms (can't be too fast)
-    // If you want to change delay for windows - change key.py
-    delay: 100,
+    keyRepeatDelay: keyRepeatDelay || keyRepeatDelay === 0 ? keyRepeatDelay : 300,
+    mouseRepeatDelay: mouseRepeatDelay || mouseRepeatDelay === 0 ? mouseRepeatDelay : 250,
 
     sendKey: sendKey,
     commands: commands

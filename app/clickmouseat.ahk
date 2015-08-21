@@ -9,6 +9,8 @@ if (%0% < 4 || %0% == "") {
     loops = %4%
 }
 
+mouseRepeatDelay = %5%
+
 WinGet, hwnd, ID, %target%
 if (hwnd) {
     WinActivate, ahk_id %hwnd%
@@ -23,7 +25,7 @@ if (hwnd) {
             {
                 MouseClick, %3%, , , , 0
             }
-            Sleep 250
+            Sleep mouseRepeatDelay
         }
         ;BlockInput Off
     }

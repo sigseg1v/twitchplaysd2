@@ -19,13 +19,17 @@
         self.actionCommand = ko.observable("").extend({ notify: 'always' });
         self.movementCommand = ko.observable("").extend({ notify: 'always' });
         self.chat = ko.observableArray();
+
         self.actionVoteMap = ko.observable({}).extend({ notify: 'always' });
-        self.movementVoteMap = ko.observable({}).extend({ notify: 'always' });
+        self.delayUntilNextAction = ko.observable(0).extend({ notify: 'always' });
         self.actionVoteList = ko.pureComputed(function () {
             return Object.keys(self.actionVoteMap()).map(function (key) {
                 return self.actionVoteMap()[key];
             });
         });
+
+        self.movementVoteMap = ko.observable({}).extend({ notify: 'always' });
+        self.delayUntilNextMovement = ko.observable(0).extend({ notify: 'always' });
         self.movementVoteList = ko.pureComputed(function () {
             return Object.keys(self.movementVoteMap()).map(function (key) {
                 return self.movementVoteMap()[key];
@@ -34,10 +38,11 @@
     }
 
     function createD3Chart(selector, data) {
-        var width = 150;
-        var height = 150;
-        var outerRadius = 65;
-        var innerRadius = 45;
+        var width = 80;
+        var height = 80;
+        var outerRadius = 35;
+        var innerRadius = 25;
+        var timerInnerRadius = 22;
 
         var color = d3.scale.category10();
 
@@ -49,17 +54,26 @@
             .innerRadius(innerRadius)
             .outerRadius(outerRadius);
 
+        var timerArc = d3.svg.arc()
+            .innerRadius(timerInnerRadius)
+            .outerRadius(innerRadius);
+
         var svg = d3.select(selector)
             .append('svg')
                 .attr('width', width)
-                .attr('height', height)
+                .attr('height', height);
+
+        var donut = svg
+            .append("g")
+                .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+        var timer = svg
             .append("g")
                 .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
 
         update(data);
 
         function update(data) {
-            var path = svg.selectAll("path").data(pie(data), keyFunc);
+            var path = donut.selectAll("path").data(pie(data), keyFunc);
             path.enter()
                 .append("path")
                     .attr("fill", function(d, i) { return color(i); })
@@ -83,8 +97,25 @@
             return d.data.id;
         }
 
+        function restartCountdown(time) {
+            timer.selectAll("path").data([]).exit().remove();
+            var path = timer.selectAll("path").data([{ value: 1, endAngle: Math.PI * 2, padAngle: 0, startAngle: 0 }]);
+            path.enter()
+                .append("path")
+                    .attr("fill", "whitesmoke")
+                    .attr("d", timerArc)
+                    .transition()
+                        .duration(time).attrTween("d", function (a) {
+                            var i = d3.interpolate({ value: 1, endAngle: 0, padAngle: 0, startAngle: 0 }, a);
+                            return function(t) {
+                                return timerArc(i(t));
+                            };
+                        }); // redraw the arcs
+        }
+
         return {
-            update: update
+            update: update,
+            restartCountdown: restartCountdown
         };
     }
 
@@ -93,16 +124,19 @@
         socket = require('socket.io-client')('http://localhost:3456/client');
 
         var actionVoteChart = createD3Chart(".action-vote .vis", []);
-        actionVoteChart.update([{id: 1, count:1}, {id:2, count: 2}]);
-        var i = 1;
-        setInterval(function() { actionVoteChart.update([{id: 1, count:i++}, {id:2, count: 2}]); }, 1000);
         var movementVoteChart = createD3Chart(".movement-vote .vis", []);
 
         vm.actionVoteList.subscribe(function (list) {
             actionVoteChart.update(list);
         });
+        vm.delayUntilNextAction.subscribe(function (delay) {
+            actionVoteChart.restartCountdown(delay);
+        });
         vm.movementVoteList.subscribe(function (list) {
             movementVoteChart.update(list);
+        });
+        vm.delayUntilNextMovement.subscribe(function (delay) {
+            movementVoteChart.restartCountdown(delay);
         });
 
         socket.on('connect', function () {
@@ -121,6 +155,7 @@
             if (command) {
                 if (command.type === 'action') {
                     vm.actionCommand(command.description || '');
+                    vm.delayUntilNextAction(command.delay);
                     if (vm.actionVoteList().length !== 0) {
                         vm.actionVoteMap({});
                     }
@@ -129,6 +164,7 @@
                         // only clear the mouse if there is a new location, since it will stay where it was left
                         vm.movementCommand(command.description);
                     }
+                    vm.delayUntilNextMovement(command.delay);
                     if (vm.movementVoteList().length !== 0) {
                         vm.movementVoteMap({});
                     }

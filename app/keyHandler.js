@@ -14,7 +14,7 @@ for (var i = 0; i < throttledCommandList.length; i++) {
 
 var commandTypes = {
     'action': {
-        minDelay: 3000
+        minDelay: 5000
     },
     'movement': {
         minDelay: 3000
@@ -82,6 +82,7 @@ function Action(key, mouse, desc) {
     self.key = key;
     self.mouse = mouse;
     self.desc = desc;
+    self.count = 1;
     self.group = 'action';
 }
 Action.prototype.toJSON = function () {
@@ -98,6 +99,20 @@ Action.prototype.toJSON = function () {
 Action.prototype.description = function (val) {
     this.desc = val;
     return this;
+};
+Action.prototype.setCount = function (val) {
+    var count = toActionCount(val || 1);
+    if (this.key) {
+        this.key = this.key.repeat(count - 1);
+    }
+    if (this.mouse) {
+        this.mouse.count = count;
+    }
+    this.count = count;
+    return this;
+};
+Action.prototype.delay = function () {
+    return Math.max(this.mouse ? (this.count - 1) * config.mouseRepeatDelay : 0, this.key ? (this.count - 1) * config.keyRepeatDelay : 0);
 };
 
 // action that represents a mouse or interface movement
@@ -311,27 +326,35 @@ var actionMap = {
         }
     },
 
-    "click": function (match) { return new Action(null, { left: true, count: toActionCount(match[2]) }).description(descriptionFormat('click', match[2])); },
-    "rclick": function (match) { return new Action(null, { right: true, count: toActionCount(match[2]) }).description(descriptionFormat('rclick', match[2])); },
-    "close": function (match) { return new Action(match[2] ? '{Space}'.repeat(toActionCount(match[2])) : '{Space}').description(descriptionFormat('close', match[2])); },
-    "enter": function (match) { return new Action(match[2] ? '{Enter}'.repeat(toActionCount(match[2])) : '{Enter}').description(descriptionFormat('enter', match[2])); },
+    "click": function (match) { return new Action(null, { left: true }).setCount(match[2]).description(descriptionFormat('click', match[2])); },
+    "rclick": function (match) { return new Action(null, { right: true }).setCount(match[2]).description(descriptionFormat('rclick', match[2])); },
+    "close": function (match) { return new Action('{Space}').setCount(match[2]).description(descriptionFormat('close', match[2])); },
+    "enter": function (match) { return new Action('{Enter}').setCount(match[2]).description(descriptionFormat('enter', match[2])); },
     "number": function (match) { return new Action("{" + parseInt(match[1]) + "}").description('' + parseInt(match[1])); },
     "fkey": function (match) { return new Action("{F" + parseInt(match[1]) + "}").description('F' + parseInt(match[1])); },
     "numpad": function (match) { return new Action("{Numpad" + parseInt(match[1]) + "}").description('num' + parseInt(match[1])); },
-    "run": function (match) { return new Action(match[2] ? '{R}'.repeat(toActionCount(match[2])) : '{R}').description(descriptionFormat('run', match[2])); },
-    "swap": function (match) { return new Action(match[2] ? '{W}'.repeat(toActionCount(match[2])) : '{W}').description(descriptionFormat('swap', match[2])); },
+    "run": function (match) { return new Action('{R}').setCount(match[2]).description(descriptionFormat('run', match[2])); },
+    "swap": function (match) { return new Action('{W}').setCount(match[2]).description(descriptionFormat('swap', match[2])); },
     "left menu": function () {
         return new Action(null, { x: 142, y: 577, left: true }).description('left menu');
     },
     "right menu": function () { return new Action('S').description('right menu'); },
-    "stats": function (match) { return new Action( match[2] ? '{C}'.repeat(toActionCount(match[2])) : '{C}').description(descriptionFormat('stats', match[2])); },
-    "inv": function (match) { return new Action(match[2] ? '{I}'.repeat(toActionCount(match[2])) : '{I}').description(descriptionFormat('inv', match[2])); },
-    "skills": function (match) { return new Action(match[2] ? '{T}'.repeat(toActionCount(match[2])) : '{T}').description(descriptionFormat('skills', match[2])); },
-    "map": function (match) { return new Action(match[2] ? '{Tab}'.repeat(toActionCount(match[2])) : '{Tab}').description(descriptionFormat('map', match[2])); },
-    "quests": function (match) { return new Action( match[2] ? '{Q}'.repeat(toActionCount(match[2])) : '{Q}').description(descriptionFormat('quests', match[2])); },
-    "merc": function (match) { return new Action( match[2] ? '{O}'.repeat(toActionCount(match[2])) : '{O}').description(descriptionFormat('merc', match[2])); },
+    "stats": function (match) { return new Action('{C}').setCount(match[2]).description(descriptionFormat('stats', match[2])); },
+    "inv": function (match) { return new Action('{I}').setCount(match[2]).description(descriptionFormat('inv', match[2])); },
+    "skills": function (match) { return new Action('{T}').setCount(match[2]).description(descriptionFormat('skills', match[2])); },
+    "map": function (match) { return new Action('{Tab}').setCount(match[2]).description(descriptionFormat('map', match[2])); },
+    "quests": function (match) { return new Action('{Q}').setCount(match[2]).description(descriptionFormat('quests', match[2])); },
+    "merc": function (match) { return new Action('{O}').setCount(match[2]).description(descriptionFormat('merc', match[2])); },
 
-    "social": function (match) { return match[2] ? new Action('{Down}'.repeat(toActionCount(match[2])) + '{Enter}').description(descriptionFormat('social', match[2])) : null; },
+    "social": function (match) {
+        if (!match[2]) {
+            return null;
+        }
+        var actionCount = toActionCount(match[2]);
+        var action = new Action('{Down}'.repeat(actionCount - 1) + '{Enter}').description(descriptionFormat('social', match[2]));
+        action.count = actionCount + 1;
+        return action;
+    }
 };
 
 function rowColToMouseAction(row, col, rowMappings, colMappings) {
@@ -435,7 +458,7 @@ function executeAction(action) {
     } else {
         if (action.key) {
             if (config.sendKey) {
-                promises.push(exec('autohotkey ./app/sendkey.ahk ' + action.key));
+                promises.push(exec('autohotkey ./app/sendkey.ahk ' + action.key + ' ' + config.keyRepeatDelay));
             }
         }
         if (action.mouse) {
@@ -452,11 +475,11 @@ function executeAction(action) {
             } else {
                 if (action.mouse.left) {
                     if (config.sendKey) {
-                        promises.push(exec('autohotkey ./app/clickmouseat.ahk ' + x + ' ' + y + ' left ' + (action.mouse.count || '1')));
+                        promises.push(exec('autohotkey ./app/clickmouseat.ahk ' + x + ' ' + y + ' left ' + (action.mouse.count || '1') + ' ' + config.mouseRepeatDelay));
                     }
                 } else if (action.mouse.right) {
                     if (config.sendKey) {
-                        promises.push(exec('autohotkey ./app/clickmouseat.ahk ' + x + ' ' + y + ' right ' + (action.mouse.count || '1')));
+                        promises.push(exec('autohotkey ./app/clickmouseat.ahk ' + x + ' ' + y + ' right ' + (action.mouse.count || '1') + ' ' + config.mouseRepeatDelay));
                     }
                 }
             }

@@ -150,33 +150,35 @@ commandTypes.forEach(function (commandType) {
 });
 
 function startCommandListenLoop(type) {
-    var options = keyHandler.getOptionsForType(type);
     function getAndExecuteCommand() {
         var data = keyHandler.getMostPopularAction(type);
+        var options = keyHandler.getOptionsForType(type);
         if (data !== null && data.action !== null) {
             var actionObj = data.action;
             console.log('executing', type, actionObj.desc);
             keyHandler.clearCommandQueue(type);
-            var options = keyHandler.getOptionsForType(type);
             var actionPromise = keyHandler.executeAction(actionObj);
             Promise.all(options.minDelay ? [actionPromise, promiseDelay(options.minDelay)] : [actionPromise])
                 .catch(function () {
                     console.log('Caught error while executing', type, actionObj);
                 })
                 .finally(getAndExecuteCommand);
-
+            
             events.emit('command', {
                 type: type,
-                description: actionObj.desc
+                description: actionObj.desc,
+                delay: Math.max(options.minDelay || 0, actionObj.delay())
             });
         } else {
+            var timeWait = options.minDelay || 500; // if there is no command, still have a small guaranteed delay
             // tell those that are listening that there was no command to run
             events.emit('command', {
                 type: type,
-                idle: true
+                idle: true,
+                delay: timeWait
             });
 
-            setTimeout(getAndExecuteCommand, 500);
+            setTimeout(getAndExecuteCommand, timeWait);
         }
     }
     getAndExecuteCommand();

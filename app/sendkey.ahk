@@ -1,6 +1,8 @@
+keyRepeatDelay = %2%
+
 DetectHiddenWindows, On
 SetDefaultMouseSpeed, 0
-SetKeyDelay, 300
+SetKeyDelay, keyRepeatDelay
 target=ahk_class Diablo II
 
 WinGet, hwnd, ID, %target%
