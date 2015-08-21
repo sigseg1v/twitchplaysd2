@@ -103,7 +103,7 @@ Action.prototype.description = function (val) {
 Action.prototype.setCount = function (val) {
     var count = toActionCount(val || 1);
     if (this.key) {
-        this.key = this.key.repeat(count - 1);
+        this.key = this.key.repeat(count);
     }
     if (this.mouse) {
         this.mouse.count = count;
@@ -351,7 +351,7 @@ var actionMap = {
             return null;
         }
         var actionCount = toActionCount(match[2]);
-        var action = new Action('{Down}'.repeat(actionCount - 1) + '{Enter}').description(descriptionFormat('social', match[2]));
+        var action = new Action('{Down}'.repeat(actionCount) + '{Enter}').description(descriptionFormat('social', match[2]));
         action.count = actionCount + 1;
         return action;
     }
