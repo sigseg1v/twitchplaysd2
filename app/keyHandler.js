@@ -387,12 +387,12 @@ function queueCommand(command, args) {
     var output = null;
     if (!command.match(regexFilter)) {
         if (!actionMap.hasOwnProperty(command)) {
-            return;
+            return output;
         }
         if (command.match(regexThrottle)) {
             var newTime = new Date().getTime();
             if (newTime - lastTime[command] < throttledCommandsDurationMap[command]) {
-                return;
+                return output;
             } else {
                 lastTime[command] = newTime;
             }

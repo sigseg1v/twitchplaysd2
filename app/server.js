@@ -121,7 +121,7 @@ client.addListener('message' + config.channel, function(from, message) {
 
         var queued = keyHandler.queueCommand(command, match);
         if (queued) {
-            events.emit('vote', { count: queued.count, id: queued.commandId, description: queued.desc, group: queued.action.group });
+            events.emit('vote', { count: queued.count, id: queued.commandId, description: queued.action.desc, group: queued.action.group });
         }
     }
     events.emit('message', { name: from, message: message, match: !!match });

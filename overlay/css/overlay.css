@@ -35,10 +35,10 @@ body {
     border-top: 1px solid;
 }
 .action-vote {
-
+    padding: 10px;
 }
 .movement-vote {
-
+    padding: 10px;
 }
 .command-invalid {
     color: #ff7070;

@@ -37,9 +37,9 @@
         });
     }
 
-    function createD3Chart(selector, data) {
-        var width = 80;
-        var height = 80;
+    function createD3Chart(selector, swatchSelector, data) {
+        var width = 70;
+        var height = 70;
         var outerRadius = 35;
         var innerRadius = 25;
         var timerInnerRadius = 22;
@@ -63,12 +63,18 @@
                 .attr('width', width)
                 .attr('height', height);
 
+        var swatchSvg = d3.select(swatchSelector)
+            .append('svg')
+                .attr('width', width * 2)
+                .attr('height', height);
+
         var donut = svg
             .append("g")
                 .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
         var timer = svg
             .append("g")
                 .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+        var swatches = swatchSvg;
 
         update(data);
 
@@ -88,6 +94,43 @@
             } else {
                 timer.selectAll("path").attr("opacity", 1);
             }
+
+            var swatchGroups = swatches.selectAll("g").data(data.map(function (d, i) { return { data: d, originalOrder: i}; }).sort(swatchSort), function (d) { return d.data.id; });
+            swatchGroups.each(function (g, i) {
+                // need to manually go into the groups in order to update existing text
+                // use the current 'i' to give the new order
+                var group = d3.select(this)
+                group.select("rect")
+                    .attr("y", function (d) { return i * 14; });
+                group.select("text")
+                    .attr("y", function (d) { return 10 + i * 14; })
+                    .text(swatchText);
+            });
+            var addedGroup = swatchGroups
+                .enter().append("g");
+                    addedGroup.append("rect")
+                            .attr("fill", function(d, i) { return color(d.originalOrder); })
+                            .attr("width", 12)
+                            .attr("height", 12)
+                            .attr("x", 0)
+                            .attr("y", function (d, i) { return i * 14; })
+                    addedGroup.append("text")
+                            .attr("fill", function(d, i) { return color(d.originalOrder); })
+                            .attr("x", 14)
+                            .attr("y", function (d, i) { return 10 + i * 14; })
+                            .attr("font-family", "sans-serif")
+                            .attr("font-size", "12px")
+                            .text(swatchText);
+            swatchGroups.exit()
+                .remove();
+        }
+
+        function swatchText (d) {
+            return d.data.count + ": " + d.data.description;
+        }
+
+        function swatchSort (a, b) {
+            return (a.data.count > b.data.count) ? -1 : ((a.data.count < b.data.count) ? 1 : (b.data.id - a.data.id));
         }
 
         function arcTween(a) {
@@ -129,8 +172,8 @@
         var vm = new OverlayViewModel();
         socket = require('socket.io-client')('http://localhost:3456/client');
 
-        var actionVoteChart = createD3Chart(".action-vote .vis", []);
-        var movementVoteChart = createD3Chart(".movement-vote .vis", []);
+        var actionVoteChart = createD3Chart(".action-vote .vis", ".action-vote .bars", []);
+        var movementVoteChart = createD3Chart(".movement-vote .vis", ".movement-vote .bars", []);
 
         vm.actionVoteList.subscribe(function (list) {
             actionVoteChart.update(list);
