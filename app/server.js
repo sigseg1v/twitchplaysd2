@@ -163,14 +163,14 @@ function startCommandListenLoop(type) {
                     console.log('Caught error while executing', type, actionObj);
                 })
                 .finally(getAndExecuteCommand);
-            
+
             events.emit('command', {
                 type: type,
                 description: actionObj.desc,
                 delay: Math.max(options.minDelay || 0, actionObj.delay())
             });
         } else {
-            var timeWait = options.minDelay || 500; // if there is no command, still have a small guaranteed delay
+            var timeWait = 500; // if there is no command, still have a small guaranteed delay
             // tell those that are listening that there was no command to run
             events.emit('command', {
                 type: type,

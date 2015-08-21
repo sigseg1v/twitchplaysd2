@@ -83,6 +83,11 @@
                 .duration(500).attrTween("d", arcTween); // redraw the arcs
             path.exit()
                 .remove();
+            if (data.length === 0) {
+                timer.selectAll("path").attr("opacity", 0);
+            } else {
+                timer.selectAll("path").attr("opacity", 1);
+            }
         }
 
         function arcTween(a) {
@@ -104,6 +109,7 @@
                 .append("path")
                     .attr("fill", "whitesmoke")
                     .attr("d", timerArc)
+                    .attr("opacity", 0)
                     .transition()
                         .duration(time).attrTween("d", function (a) {
                             var i = d3.interpolate({ value: 1, endAngle: 0, padAngle: 0, startAngle: 0 }, a);
