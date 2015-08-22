@@ -2,6 +2,7 @@
     var CHAT_FADE_TIME_MS = 30000;
 
     var d3 = require('d3');
+    var config = require('../app/config.js');
 
     var socket = null;
     var chatMessageFadeInterval = undefined;
@@ -170,7 +171,7 @@
 
     function init() {
         var vm = new OverlayViewModel();
-        socket = require('socket.io-client')('http://localhost:3456/client');
+        socket = require('socket.io-client')(config.overlayHost + ':' + config.overlayPort + '/client');
 
         var actionVoteChart = createD3Chart(".action-vote .vis", ".action-vote .bars", []);
         var movementVoteChart = createD3Chart(".movement-vote .vis", ".movement-vote .bars", []);

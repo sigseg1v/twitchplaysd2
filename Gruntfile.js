@@ -1,4 +1,5 @@
-var config = require('./app/config.js')
+var config = require('./app/config.js');
+var moment = require('moment');
 
 module.exports = function (grunt) {
     require('load-grunt-tasks')(grunt);
@@ -8,7 +9,13 @@ module.exports = function (grunt) {
             server: {
                 options: {
                     watch: [ 'app/*.ahk', 'app/*.js', 'Gruntfile.js' ],
-                    delay: 1000
+                    delay: 1000,
+                    callback: function (nodemon) {
+                        nodemon.on('readable', function () {
+                            this.stdout.pipe(fs.createWriteStream('./logs/server_out' + moment.format('DD_MM_YYYY') + '.txt'));
+                            this.stderr.pipe(fs.createWriteStream('./logs/server_err' + moment.format('DD_MM_YYYY') + '.txt'));
+                        });
+                    }
                 },
                 script: 'app/server.js'
             },
@@ -17,8 +24,14 @@ module.exports = function (grunt) {
                 options: {
                     watch: [ 'app/overlay_server.js' ],
                     delay: 1000,
+                    callback: function (nodemon) {
+                        nodemon.on('readable', function () {
+                            this.stdout.pipe(fs.createWriteStream('./logs/overlay_out' + moment.format('DD_MM_YYYY') + '.txt'));
+                            this.stderr.pipe(fs.createWriteStream('./logs/overlay_err' + moment.format('DD_MM_YYYY') + '.txt'));
+                        });
+                    },
                     env: {
-                        OVERLAY_PORT: 3456
+                        OVERLAY_PORT: config.overlayPort
                     }
                 },
                 script: 'app/overlay_server.js'
