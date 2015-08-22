@@ -25,6 +25,7 @@ require('fs').watch('temp', function (event, filename) {
 
 // forward commands and messages to the client
 serverNs.on('connection', function (socket) {
+    console.log("Overlay server received connection from server process.");
     socket.on('command', function (command) {
         clientNs.emit('command', command);
     });

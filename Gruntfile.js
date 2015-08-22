@@ -1,6 +1,7 @@
 var config = require('./app/config.js');
 var fs = require('fs');
 var moment = require('moment');
+var envify = require('envify/custom');
 
 module.exports = function (grunt) {
     require('load-grunt-tasks')(grunt);
@@ -50,7 +51,13 @@ module.exports = function (grunt) {
         browserify: {
             overlay: {
                 src: 'overlay/overlay.js',
-                dest: 'overlay/overlay_compiled.js'
+                dest: 'overlay/overlay_compiled.js',
+                options: {
+                    transform: [envify({
+                        OVERLAY_HOST: config.overlayHost,
+                        OVERLAY_PORT: config.overlayPort
+                    })]
+                }
             }
         },
 
