@@ -1,3 +1,5 @@
+var config = require('./app/config.js')
+
 module.exports = function (grunt) {
     require('load-grunt-tasks')(grunt);
 
@@ -20,6 +22,15 @@ module.exports = function (grunt) {
                     }
                 },
                 script: 'app/overlay_server.js'
+            }
+        },
+
+        forever: {
+            game: {
+                options: {
+                    index: config.gameLaunchPath,
+                    command: ''
+                }
             }
         },
 
@@ -50,7 +61,7 @@ module.exports = function (grunt) {
                 }
             },
             serveronly: {
-                tasks: [ 'nodemon:server' ],
+                tasks: [ 'forever:game:start', 'nodemon:server' ],
                 options: {
                     logConcurrentOutput: true
                 }
@@ -65,10 +76,12 @@ module.exports = function (grunt) {
     });
 
     grunt.registerTask('listen', [ 'browserify:overlay', 'concurrent:servers' ]);
-    grunt.registerTask('server', [ 'browserify:overlay', 'concurrent:serveronly' ]);
+    grunt.registerTask('server', [ 'concurrent:serveronly', 'keepalive' ]);
     grunt.registerTask('overlay', [ 'browserify:overlay', 'concurrent:overlayonly' ]);
 
     grunt.registerTask('overlayForceReload', function () {
         require('fs').writeFileSync('./temp/overlayReload', 'reload');
     });
+
+    grunt.registerTask('serverLogin')
 };

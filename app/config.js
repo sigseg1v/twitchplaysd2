@@ -89,6 +89,7 @@ var overlayHost = process.env.OVERLAY_HOST || nconf.get('OVERLAY_HOST');
 var overlayPort = process.env.OVERLAY_PORT || nconf.get('OVERLAY_PORT');
 var keyRepeatDelay = process.env.KEY_REPEAT_DELAY || nconf.get('KEY_REPEAT_DELAY');
 var mouseRepeatDelay = process.env.MOUSE_REPEAT_DELAY || nconf.get('MOUSE_REPEAT_DELAY');
+var gameLaunchPath = process.env.GAME_LAUNCH_PATH || nconf.get('GAME_LAUNCH_PATH');
 
 var config = {
     // Either 'windows' or 'other'
@@ -97,6 +98,8 @@ var config = {
     // Title of the window of the program
     // Ex: 'Desmume' or 'VBA'
     programName: programName || 'VBA',
+
+    gameLaunchPath: gameLaunchPath || '',
 
     // Ex: irc.twitch.tv or 199.9.252.26
     server: serverIP || 'irc.twitch.tv',
