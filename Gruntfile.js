@@ -1,5 +1,4 @@
 var config = require('./app/config.js');
-var moment = require('moment');
 var fs = require('fs');
 
 module.exports = function (grunt) {
@@ -10,14 +9,7 @@ module.exports = function (grunt) {
             server: {
                 options: {
                     watch: [ 'app/*.ahk', 'app/*.js', 'Gruntfile.js' ],
-                    delay: 1000,
-                    stdout: false,
-                    callback: function (nodemon) {
-                        nodemon.on('readable', function () {
-                            this.stdout.pipe(fs.createWriteStream('./logs/server_out_' + moment().format('DD_MM_YYYY') + '.txt', {flags: 'a'}));
-                            this.stderr.pipe(fs.createWriteStream('./logs/server_err_' + moment().format('DD_MM_YYYY') + '.txt', {flags: 'a'}));
-                        });
-                    }
+                    delay: 1000
                 },
                 script: 'app/server.js'
             },
@@ -26,13 +18,6 @@ module.exports = function (grunt) {
                 options: {
                     watch: [ 'app/overlay_server.js' ],
                     delay: 1000,
-                    stdout: false,
-                    callback: function (nodemon) {
-                        nodemon.on('readable', function () {
-                            this.stdout.pipe(fs.createWriteStream('./logs/overlay_out_' + moment().format('DD_MM_YYYY') + '.txt', {flags: 'a'}));
-                            this.stderr.pipe(fs.createWriteStream('./logs/overlay_err_' + moment().format('DD_MM_YYYY') + '.txt', {flags: 'a'}));
-                        });
-                    },
                     env: {
                         OVERLAY_PORT: config.overlayPort
                     }
@@ -87,8 +72,6 @@ module.exports = function (grunt) {
     grunt.registerTask('overlay', [ 'browserify:overlay', 'concurrent:overlayonly' ]);
 
     grunt.registerTask('overlayForceReload', function () {
-        require('fs').writeFileSync('./temp/overlayReload', 'reload');
+        fs.writeFileSync('./temp/overlayReload', 'reload');
     });
-
-    grunt.registerTask('serverLogin')
 };
