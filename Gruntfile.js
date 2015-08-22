@@ -52,12 +52,6 @@ module.exports = function (grunt) {
                     logConcurrentOutput: true
                 }
             },
-            serveronly: {
-                tasks: [ 'nodemon:server' ],
-                options: {
-                    logConcurrentOutput: true
-                }
-            },
             overlayonly: {
                 tasks: [ 'nodemon:overlay', 'watch:overlayDataFiles', 'watch:overlayCompiled' ],
                 options: {
@@ -68,7 +62,7 @@ module.exports = function (grunt) {
     });
 
     grunt.registerTask('listen', [ 'browserify:overlay', 'concurrent:servers' ]);
-    grunt.registerTask('server', [ 'concurrent:serveronly', 'keepalive' ]);
+    grunt.registerTask('server', [ 'nodemon:server' ]);
     grunt.registerTask('overlay', [ 'browserify:overlay', 'concurrent:overlayonly' ]);
 
     grunt.registerTask('overlayForceReload', function () {
