@@ -25,15 +25,6 @@ module.exports = function (grunt) {
             }
         },
 
-        forever: {
-            game: {
-                options: {
-                    index: config.gameLaunchPath,
-                    command: ''
-                }
-            }
-        },
-
         watch: {
             overlayDataFiles: {
                 files: [ 'overlay/**/*', '!overlay/overlay_compiled.js' ],
@@ -61,7 +52,7 @@ module.exports = function (grunt) {
                 }
             },
             serveronly: {
-                tasks: [ 'forever:game:start', 'nodemon:server' ],
+                tasks: [ 'nodemon:server' ],
                 options: {
                     logConcurrentOutput: true
                 }
