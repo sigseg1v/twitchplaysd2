@@ -99,7 +99,7 @@ var config = {
     // Ex: 'Desmume' or 'VBA'
     programName: programName || 'VBA',
 
-    gameLaunchPath: gameLaunchPath || '',
+    gameLaunchCommand: gameLaunchPath || 'autohotkey ./app/launchd2.ahk',
 
     // Ex: irc.twitch.tv or 199.9.252.26
     server: serverIP || 'irc.twitch.tv',

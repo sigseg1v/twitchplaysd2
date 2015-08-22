@@ -190,9 +190,16 @@ function pollWindowAlive() {
     var promise = isWindowAlive();
     promise.then(function (result) {
         if (!result || result[0] !== '0') {
-            console.log('Error: Window not found, closing stream and exiting.');
-            stopEverything();
-            process.exit(0);
+            if (config.gameLaunchCommand) {
+                console.log('Window not found, relaunching.');
+                exec(config.gameLaunchCommand).then(function () {
+                    setTimeout(pollWindowAlive, 5000);
+                });
+            } else {
+                console.log('Window not found, no launch command specified, exiting...');
+                stopEverything();
+                process.exit(0);
+            }
         } else {
             setTimeout(pollWindowAlive, 5000);
         }
