@@ -2,7 +2,8 @@ var express = require('express');
 var overlay = express();
 var server = require('http').Server(overlay);
 var io = require('socket.io')(server);
-var port = process.env.OVERLAY_PORT || 3456;
+var config = require('./config.js');
+var port = config.overlayPort;
 
 var serverNs = io.of('/server'); // the game server should connect to this namespace to send things to the overlay server
 var clientNs = io.of('/client'); // the overlay client should connect to this namespace to receive things from the overlay server

@@ -1,28 +1,27 @@
 var config = require('./app/config.js');
 var fs = require('fs');
+var moment = require('moment');
 
 module.exports = function (grunt) {
     require('load-grunt-tasks')(grunt);
 
     grunt.initConfig({
-        nodemon: {
+        forever: {
             server: {
                 options: {
-                    watch: [ 'app/*.ahk', 'app/*.js', 'Gruntfile.js' ],
-                    delay: 1000
-                },
-                script: 'app/server.js'
+                    index: 'app/server.js',
+                    logDir: 'logs',
+                    errFile: 'server_' + moment().format('DD_MM_YYYY') + '_err.txt',
+                    outFile: 'server_' + moment().format('DD_MM_YYYY') + '_out.txt'
+                }
             },
-
             overlay: {
                 options: {
-                    watch: [ 'app/overlay_server.js' ],
-                    delay: 1000,
-                    env: {
-                        OVERLAY_PORT: config.overlayPort
-                    }
-                },
-                script: 'app/overlay_server.js'
+                    index: 'app/overlay_server.js',
+                    logDir: 'logs',
+                    errFile: 'overlay_' + moment().format('DD_MM_YYYY') + '_err.txt',
+                    outFile: 'overlay_' + moment().format('DD_MM_YYYY') + '_out.txt'
+                }
             }
         },
 
@@ -35,6 +34,16 @@ module.exports = function (grunt) {
             overlayCompiled: {
                 files: [ 'overlay/overlay_compiled.js' ],
                 tasks: [ 'overlayForceReload' ]
+            },
+
+            overlayServer: {
+                files: [ 'app/overlay_server.js' ],
+                tasks: [ 'forever:overlay:restart' ]
+            },
+
+            server: {
+                files: [ 'app/*.ahk', 'app/*.js', '!app/overlay_server.js' ],
+                tasks: [ 'forever:server:restart' ]
             }
         },
 
@@ -47,13 +56,19 @@ module.exports = function (grunt) {
 
         concurrent: {
             servers: {
-                tasks: [ 'nodemon:server', 'nodemon:overlay', 'watch:overlayDataFiles', 'watch:overlayCompiled' ],
+                tasks: [ 'forever:server:start', 'forever:overlay:start', 'watch:overlayDataFiles', 'watch:overlayCompiled', 'watch:overlayServer', 'watch:server' ],
                 options: {
                     logConcurrentOutput: true
                 }
             },
-            overlayonly: {
-                tasks: [ 'nodemon:overlay', 'watch:overlayDataFiles', 'watch:overlayCompiled' ],
+            overlayOnly: {
+                tasks: [ 'forever:overlay:start', 'watch:overlayDataFiles', 'watch:overlayCompiled', 'watch:overlayServer' ],
+                options: {
+                    logConcurrentOutput: true
+                }
+            },
+            serverOnly: {
+                tasks: [ 'forever:server:start', 'watch:server' ],
                 options: {
                     logConcurrentOutput: true
                 }
@@ -62,8 +77,11 @@ module.exports = function (grunt) {
     });
 
     grunt.registerTask('listen', [ 'browserify:overlay', 'concurrent:servers' ]);
-    grunt.registerTask('server', [ 'nodemon:server' ]);
-    grunt.registerTask('overlay', [ 'browserify:overlay', 'concurrent:overlayonly' ]);
+    grunt.registerTask('server', [ 'concurrent:serverOnly' ]);
+    grunt.registerTask('overlay', [ 'browserify:overlay', 'concurrent:overlayOnly' ]);
+    grunt.registerTask('kill-server', [ 'forever:server:stop' ]);
+    grunt.registerTask('kill-overlay', [ 'forever:overlay:stop' ]);
+    grunt.registerTask('kill-all', [ 'forever:server:stop', 'forever:overlay:stop' ]);
 
     grunt.registerTask('overlayForceReload', function () {
         fs.writeFileSync('./temp/overlayReload', 'reload');
