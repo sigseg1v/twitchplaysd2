@@ -15,6 +15,8 @@ if (!hwnd) {
             BlockInput On
             MouseMove, 400, 308, 0
             MouseClick, left
+            Sleep, 100
+            MouseClick, left
             Sleep, 5000
             MouseMove, 175, 125, 0
             MouseClick, left
