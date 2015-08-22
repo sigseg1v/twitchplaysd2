@@ -3,16 +3,16 @@ SetDefaultMouseSpeed, 0
 CoordMode, Mouse, Client
 target=ahk_class Diablo II
 executeCmd = "Diablo II.exe" -w
-executeDir = "C:\Diablo II"
+executeDir=C:\Diablo II
+SetWorkingDir, %executeDir%
 
 WinGet, hwnd, ID, %target%
 if (!hwnd) {
-    Run, %executeCmd%, %executeDir%
+    Run, %executeCmd%
     Sleep, 5000
     WinGet, hwnd, ID, %target%
     if (hwnd) {
         WinSet, AlwaysOnTop, on, ahk_id %hwnd%
-        WinMove, ahk_id %hwnd%, , 0, 0
         WinActivate, ahk_id %hwnd%
         IfWinActive, ahk_id %hwnd%
         {
