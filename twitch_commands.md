@@ -117,6 +117,16 @@
 
 - quest speech
 
+###Vendor Positions
+
+- repair
+
+- repair all
+
+- vendor row 1-10
+
+- vendor col 1-10
+
 ###Cube Positions
 
 - cube row1-4
@@ -124,6 +134,12 @@
 - cube col1-3
 
 - cube transmute
+
+###Quest Overlays
+
+- orifice
+
+- orifice ok
 
 ###Gear Slot Positions
 

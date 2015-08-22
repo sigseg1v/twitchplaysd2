@@ -38,9 +38,17 @@ var commands = {
     "quest col": new RegExp('^quest ?col ?([1-3])$', 'i'),
     "quest speech": new RegExp('^quest ?speech$', 'i'),
 
+    "repair": new RegExp('^repair$', 'i'),
+    "repair all": new RegExp('^repair ?all$', 'i'),
+    "vendor row": new RegExp('^vendor ?row ?([1-9]|10)$', 'i'),
+    "vendor col": new RegExp('^vendor ?col ?([1-9]|10)$', 'i'),
+
     "cube row": new RegExp('^cube ?row ?([1-4])$', 'i'),
     "cube col": new RegExp('^cube ?col ?([1-3])$', 'i'),
     "cube transmute": new RegExp('^cube ?transmute$', 'i'),
+
+    "orifice": new RegExp('^orifice$', 'i'),
+    "orifice ok": new RegExp('^orifice ?ok$', 'i'),
 
     "inv slot": new RegExp('^(inv|inventory) ?(weapon|offhand|head|neck|chest|gloves|lring|rring|belt|boots)$', 'i'),
     "merc slot": new RegExp('^merc ?(weapon|offhand|head|chest)$', 'i'),

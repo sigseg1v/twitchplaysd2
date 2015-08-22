@@ -43,6 +43,9 @@ var mouseMappings = {
     stashRow: [157,187,216,245,274,303,331,361],
     stashCol: [168,198,226,255,284,314],
 
+    vendorRow: [140,167,197,223,253,282,315,339,369,400],
+    vendorCol: [110,138,167,197,225,254,284,314,343,370],
+
     questRow: [150,250],
     questCol: [141,239,335],
 
@@ -70,6 +73,9 @@ var state = {
 
     questRow: 1,
     questCol: 1,
+
+    vendorRow: 1,
+    vendorCol: 1,
 
     cubeRow: 1,
     cubeCol: 1
@@ -225,6 +231,20 @@ var actionMap = {
     },
     "quest speech": function () { return new MouseAction({ x: 321, y: 468 }).description('quest speech'); },
 
+    "repair": function () { return new MouseAction({ x: 316, y: 464 }).description('repair'); },
+    "repair all": function () { return new MouseAction({ x: 369, y: 464 }).description('repair all'); },
+    "vendor row": function (match) {
+        var slotNumber = parseInt(match[1]);
+        state.vendorRow = slotNumber;
+        return rowColToMouseAction(state.vendorRow, state.vendorCol, mouseMappings.vendorRow, mouseMappings.vendorCol).description('vendor row ' + slotNumber);
+    },
+    "vendor col": function (match) {
+        var slotNumber = parseInt(match[1]);
+        state.vendorCol = slotNumber;
+        return rowColToMouseAction(state.vendorRow, state.vendorCol, mouseMappings.vendorRow, mouseMappings.vendorCol).description('vendor col ' + slotNumber);
+    },
+
+
     "cube row": function (match) {
         var slotNumber = parseInt(match[1]);
         state.cubeRow = slotNumber;
@@ -236,6 +256,9 @@ var actionMap = {
         return rowColToMouseAction(state.cubeRow, state.cubeCol, mouseMappings.cubeRow, mouseMappings.cubeCol).description('cube col ' + slotNumber);
     },
     "cube transmute": function () { return new MouseAction({ x: 239, y: 338 }).description('cube transmute'); },
+
+    "orifice": function () { return new MouseAction({ x: 165, y: 170 }).description('orifice'); },
+    "orifice ok": function () { return new MouseAction({ x: 137, y: 245 }).description('orifice ok'); },
 
     "inv slot": function (match) {
         var slot = match[2];
