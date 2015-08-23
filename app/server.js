@@ -154,7 +154,7 @@ function startCommandListenLoop(type) {
     function getAndExecuteCommand() {
         var data = keyHandler.getMostPopularAction(type);
         var options = keyHandler.getOptionsForType(type);
-        if ((data !== null && data.action !== null) || (lastAction && lastAction.continuous) {
+        if ((data !== null && data.action !== null) || (lastAction && lastAction.continuous)) {
             var actionObj = data && data.action ? data.action : lastAction;
             console.log('executing', type, actionObj.desc);
             keyHandler.clearCommandQueue(type);
