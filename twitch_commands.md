@@ -36,6 +36,8 @@
 
 - merc -- *opens the mercernary stats and equipment window*
 
+- social1-6 -- *selects commands from npc social dialogs*
+
 
 
 

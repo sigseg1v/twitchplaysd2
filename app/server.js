@@ -150,11 +150,12 @@ commandTypes.forEach(function (commandType) {
 });
 
 function startCommandListenLoop(type) {
+    var lastAction = null;
     function getAndExecuteCommand() {
         var data = keyHandler.getMostPopularAction(type);
         var options = keyHandler.getOptionsForType(type);
-        if (data !== null && data.action !== null) {
-            var actionObj = data.action;
+        if ((data !== null && data.action !== null) || (lastAction && lastAction.continuous())) {
+            var actionObj = data && data.action ? data.action : lastAction;
             console.log('executing', type, actionObj.desc);
             keyHandler.clearCommandQueue(type);
             var actionPromise = keyHandler.executeAction(actionObj);
@@ -169,6 +170,7 @@ function startCommandListenLoop(type) {
                 description: actionObj.desc,
                 delay: Math.max(options.minDelay || 0, actionObj.delay())
             });
+            lastAction = actionObj;
         } else {
             var timeWait = 500; // if there is no command, still have a small guaranteed delay
             // tell those that are listening that there was no command to run

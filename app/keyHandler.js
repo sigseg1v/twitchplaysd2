@@ -90,6 +90,7 @@ function Action(key, mouse, desc) {
     self.desc = desc;
     self.count = 1;
     self.group = 'action';
+    self.continuous = false;
 }
 Action.prototype.toJSON = function () {
     // this, stringified, is literally the key to determine whether two objects are equal, so don't add extra properties
@@ -120,6 +121,12 @@ Action.prototype.setCount = function (val) {
 Action.prototype.delay = function () {
     return Math.max(this.mouse ? (this.count - 1) * config.mouseRepeatDelay : 0, this.key ? (this.count - 1) * config.keyRepeatDelay : 0);
 };
+Action.prototype.continuous = function(val) {
+    if (val !== undefined) {
+        this.continuous = !!val;
+    }
+    return !!this.continuous;
+}
 
 // action that represents a mouse or interface movement
 function MouseAction(mouse, key, desc) {
@@ -136,14 +143,14 @@ var specialActions = {
 var actionMap = {
     "esc": function () { return specialActions.ESCAPE; },
     "center": function () { return new MouseAction({ x: 400, y: 282 }).description('center'); },
-    "left": function (match) { return new MouseAction({ x: 360 - (toActionCount(match[1], 0, 3) * 50), y: 282 }, '{Left}').description(descriptionFormat('left', match[1])); },
-    "upleft": function (match) { return new MouseAction({ x: 360 - (toActionCount(match[1], 0, 3) * 50), y: 242 - (toActionCount(match[1], 0, 3) * 50) }).description(descriptionFormat('upleft', match[1])); },
-    "up": function (match) { return new MouseAction({ x: 400, y: 242 - (toActionCount(match[1], 0, 3) * 50) }, '{Up}').description(descriptionFormat('up', match[1])); },
-    "upright": function (match) { return new MouseAction({ x: 440 + (toActionCount(match[1], 0, 3) * 50), y: 242 - (toActionCount(match[1], 0, 3) * 50) }).description(descriptionFormat('upright', match[1])); },
-    "right": function (match) { return new MouseAction({ x: 440 + (toActionCount(match[1], 0, 3) * 50), y: 282 }, '{Right}').description(descriptionFormat('right', match[1])); },
-    "downright": function (match) { return new MouseAction({ x: 440 + (toActionCount(match[1], 0, 3) * 50), y: 322 + (toActionCount(match[1], 0, 3) * 50) }).description(descriptionFormat('downright', match[1])); },
-    "down": function (match) { return new MouseAction({ x: 400, y: 322 + (toActionCount(match[1], 0, 3) * 50) }, '{Down}').description(descriptionFormat('down', match[1])); },
-    "downleft": function (match) { return new MouseAction({ x: 360 - (toActionCount(match[1], 0, 3) * 50), y: 322 + (toActionCount(match[1], 0, 3) * 50) }).description(descriptionFormat('downleft', match[1])); },
+    "left": function (match) { return new MouseAction({ x: 360 - (toActionCount(match[1], 0, 3) * 50), y: 282, left: true }, '{Left}').description(descriptionFormat('left', match[1])); },
+    "upleft": function (match) { return new MouseAction({ x: 360 - (toActionCount(match[1], 0, 3) * 50), y: 242 - (toActionCount(match[1], 0, 3) * 50), left: true }).description(descriptionFormat('upleft', match[1])); },
+    "up": function (match) { return new MouseAction({ x: 400, y: 242 - (toActionCount(match[1], 0, 3) * 50), left: true }, '{Up}').description(descriptionFormat('up', match[1])); },
+    "upright": function (match) { return new MouseAction({ x: 440 + (toActionCount(match[1], 0, 3) * 50), y: 242 - (toActionCount(match[1], 0, 3) * 50), left: true }).description(descriptionFormat('upright', match[1])); },
+    "right": function (match) { return new MouseAction({ x: 440 + (toActionCount(match[1], 0, 3) * 50), y: 282, left: true }, '{Right}').description(descriptionFormat('right', match[1])); },
+    "downright": function (match) { return new MouseAction({ x: 440 + (toActionCount(match[1], 0, 3) * 50), y: 322 + (toActionCount(match[1], 0, 3) * 50), left: true }).description(descriptionFormat('downright', match[1])); },
+    "down": function (match) { return new MouseAction({ x: 400, y: 322 + (toActionCount(match[1], 0, 3) * 50), left: true }, '{Down}').description(descriptionFormat('down', match[1])); },
+    "downleft": function (match) { return new MouseAction({ x: 360 - (toActionCount(match[1], 0, 3) * 50), y: 322 + (toActionCount(match[1], 0, 3) * 50), left: true }).description(descriptionFormat('downleft', match[1])); },
 
     "str": function () { return new MouseAction({ x: 220, y: 150 }).description('str'); },
     "dex": function () { return new MouseAction({ x: 220, y: 215 }).description('dex'); },
@@ -349,6 +356,8 @@ var actionMap = {
         }
     },
 
+    "leftrepeat": function (match) { return new Action(null, { left: true }).continuous(true).setCount(match[2]).description(descriptionFormat('click', match[2])); },
+    "rightrepeat": function (match) { return new Action(null, { right: true }).continuous(true).setCount(match[2]).description(descriptionFormat('click', match[2])); },
     "click": function (match) { return new Action(null, { left: true }).setCount(match[2]).description(descriptionFormat('click', match[2])); },
     "rclick": function (match) { return new Action(null, { right: true }).setCount(match[2]).description(descriptionFormat('rclick', match[2])); },
     "close": function (match) { return new Action('{Space}').setCount(match[2]).description(descriptionFormat('close', match[2])); },
@@ -495,15 +504,14 @@ function executeAction(action) {
                 if (config.sendKey) {
                     promises.push(exec('autohotkey ./app/movemouse.ahk ' + x + ' ' + y));
                 }
-            } else {
-                if (action.mouse.left) {
-                    if (config.sendKey) {
-                        promises.push(exec('autohotkey ./app/clickmouseat.ahk ' + x + ' ' + y + ' left ' + (action.mouse.count || '1') + ' ' + config.mouseRepeatDelay));
-                    }
-                } else if (action.mouse.right) {
-                    if (config.sendKey) {
-                        promises.push(exec('autohotkey ./app/clickmouseat.ahk ' + x + ' ' + y + ' right ' + (action.mouse.count || '1') + ' ' + config.mouseRepeatDelay));
-                    }
+            }
+            if (action.mouse.left) {
+                if (config.sendKey) {
+                    promises.push(exec('autohotkey ./app/clickmouseat.ahk ' + x + ' ' + y + ' left ' + (action.mouse.count || '1') + ' ' + config.mouseRepeatDelay));
+                }
+            } else if (action.mouse.right) {
+                if (config.sendKey) {
+                    promises.push(exec('autohotkey ./app/clickmouseat.ahk ' + x + ' ' + y + ' right ' + (action.mouse.count || '1') + ' ' + config.mouseRepeatDelay));
                 }
             }
         }
