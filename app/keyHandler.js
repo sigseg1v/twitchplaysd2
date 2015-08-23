@@ -121,7 +121,7 @@ Action.prototype.setCount = function (val) {
 Action.prototype.delay = function () {
     return Math.max(this.mouse ? (this.count - 1) * config.mouseRepeatDelay : 0, this.key ? (this.count - 1) * config.keyRepeatDelay : 0);
 };
-Action.prototype.continuous = function(val) {
+Action.prototype.setContinuous = function(val) {
     if (val !== undefined) {
         this.continuous = !!val;
     }
@@ -356,8 +356,8 @@ var actionMap = {
         }
     },
 
-    "leftrepeat": function (match) { return new Action(null, { left: true }).continuous(true).setCount(match[2]).description('repeatleft'); },
-    "rightrepeat": function (match) { return new Action(null, { right: true }).continuous(true).setCount(match[2]).description('repeatright'); },
+    "leftrepeat": function (match) { return new Action(null, { left: true }).setContinuous(true).setCount(match[2]).description('repeatleft'); },
+    "rightrepeat": function (match) { return new Action(null, { right: true }).setContinuous(true).setCount(match[2]).description('repeatright'); },
     "click": function (match) { return new Action(null, { left: true }).setCount(match[2]).description(descriptionFormat('click', match[2])); },
     "rclick": function (match) { return new Action(null, { right: true }).setCount(match[2]).description(descriptionFormat('rclick', match[2])); },
     "close": function (match) { return new Action('{Space}').setCount(match[2]).description(descriptionFormat('close', match[2])); },
