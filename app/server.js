@@ -72,6 +72,7 @@ if (config.obsRemoteEnable) {
 }
 
 if (config.overlayConnectionEnable) {
+    console.log("Attempting to connect to overlay server at " + config.overlayHost + ':' + config.overlayPort + '/server');
     var io = require('socket.io-client')(config.overlayHost + ':' + config.overlayPort + '/server');
     io.on('connect', function () {
         console.log('Server connected to overlay server socket.');
