@@ -85,6 +85,9 @@ if (config.overlayConnectionEnable) {
         events.on('vote', function (data) {
             io.emit('vote', data);
         });
+        events.on('repeatToggle', function (data) {
+            io.emit('repeatToggle', data);
+        });
     });
 }
 
@@ -152,14 +155,16 @@ commandTypes.forEach(function (commandType) {
 
 function startCommandListenLoop(type) {
     var lastAction = null;
+    var startAction = keyHandler.getOptionsForType(type).startAction || null;
     function getAndExecuteCommand() {
         var data = keyHandler.getMostPopularAction(type);
         var options = keyHandler.getOptionsForType(type);
-        if ((data !== null && data.action !== null) || (lastAction && lastAction.continuous)) {
+        var state = keyHandler.getState();
+        if ((data !== null && data.action !== null) || (lastAction && (lastAction.continuous || state.repeatEnabled) && lastAction.canBeGlobalContinuous)) {
             var actionObj = data && data.action ? data.action : lastAction;
             console.log('executing', type, actionObj.desc);
             keyHandler.clearCommandQueue(type);
-            var actionPromise = keyHandler.executeAction(actionObj);
+            var actionPromise = keyHandler.executeAction(actionObj, events);
 
             events.emit('command', {
                 type: type,
@@ -185,7 +190,12 @@ function startCommandListenLoop(type) {
             setTimeout(getAndExecuteCommand, timeWait);
         }
     }
-    getAndExecuteCommand();
+    if (startAction) {
+        keyHandler.executeAction(startAction, events)
+            .finally(getAndExecuteCommand);
+    } else {
+        getAndExecuteCommand();
+    }
 }
 
 console.log('Listening for commands...');

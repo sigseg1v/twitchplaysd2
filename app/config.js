@@ -3,18 +3,18 @@ var nconf = require('nconf').argv().env().file({ file:'config.json' });
 var commands = {
     "esc": new RegExp('^esc$'),
 
-    "center": new RegExp('^center$', 'i'),
-    "left": new RegExp('^left ?([1-3])?$', 'i'),
-    "upleft": new RegExp('^upleft ?([1-3])?$', 'i'),
-    "up": new RegExp('^up ?([1-3])?$', 'i'),
-    "upright": new RegExp('^upright ?([1-3])?$', 'i'),
-    "right": new RegExp('^right ?([1-3])?$', 'i'),
-    "downright": new RegExp('^downright ?([1-3])?$', 'i'),
-    "down": new RegExp('^down ?([1-3])?$', 'i'),
-    "downleft": new RegExp('^downleft ?([1-3])?$', 'i'),
+    "center": new RegExp('^((mouse|pos|click|move) ?)*center', 'i'),
+    "left": new RegExp('^((mouse|pos|click|move) ?)*left ?([1-9])?', 'i'),
+    "upleft": new RegExp('^((mouse|pos|click|move) ?)*(up ?left|left ?up) ?([1-9])?', 'i'),
+    "up": new RegExp('^((mouse|pos|click|move) ?)*up ?([1-9])?', 'i'),
+    "upright": new RegExp('^((mouse|pos|click|move) ?)*(up ?right|right ?up) ?([1-9])?', 'i'),
+    "right": new RegExp('^((mouse|pos|click|move) ?)*right ?([1-9])?', 'i'),
+    "downright": new RegExp('^((mouse|pos|click|move) ?)*(down ?right|right ?down) ?([1-9])?', 'i'),
+    "down": new RegExp('^((mouse|pos|click|move) ?)*down ?([1-9])?', 'i'),
+    "downleft": new RegExp('^((mouse|pos|click|move) ?)*(down ?left|left ?down) ?([1-9])?', 'i'),
 
-    "leftrepeat": new RegExp('(repeat left|left repeat|repeatleft|leftrepeat|lrepeat|lrep|repeatl|rl|lr)$', 'i'),
-    "rightrepeat": new RegExp('(repeat right|right repeat|repeatright|rightrepeat|rrepeat|rrep|repeatr|rr)$', 'i'),
+    "repeat": new RegExp('^(mouse ?)?(repeat|rep|repeat ?on|rep ?on|repeat ?enable|rep ?enable)$', 'i'),
+    "repeatoff": new RegExp('^(mouse ?)?(repeat ?off|rep ?off|repeat ?disable|rep ?disable)$', 'i'),
 
     "str": new RegExp('^str$', 'i'),
     "dex": new RegExp('^dex$', 'i'),
@@ -27,9 +27,9 @@ var commands = {
     "tree row": new RegExp('^tree ?row ?([1-6])$', 'i'),
     "tree col": new RegExp('^tree ?col ?([1-3])$', 'i'),
 
-    "skill row": new RegExp('^skill ?row ?([1-5])$', 'i'),
-    "right col": new RegExp('^right ?col ?([1-9]|10)$', 'i'),
-    "left col": new RegExp('^left ?col ?([1-9]|10)$', 'i'),
+    "skill row": new RegExp('^(left|right)? ?skill ?row ?([1-5])$', 'i'),
+    "right col": new RegExp('^right ?(skill ?)?col ?([1-9]|10)$', 'i'),
+    "left col": new RegExp('^left ?(skill ?)?col ?([1-9]|10)$', 'i'),
 
     "inv row": new RegExp('^inv ?row ?([1-4])$', 'i'),
     "inv col": new RegExp('^inv ?col ?([1-9]|10)$', 'i'),
@@ -62,12 +62,12 @@ var commands = {
     "wp": new RegExp('^wp ?([1-9])$', 'i'),
     "wp tab": new RegExp('^wp ?tab ?([1-5])$', 'i'),
 
-    "click": new RegExp('^(click|leftclick|left click|lclick) ?([1-9])?$', 'i'),
-    "rclick": new RegExp('^(rclick|right click|rightclick) ?([1-9])?$', 'i'),
+    "click": new RegExp('^(((mouse ?|button ?)*(left ?)?)?(click|leftclick|left click|lclick)|(mouse ?|button ?|click ?)+left) ?([1-9])?', 'i'),
+    "rclick": new RegExp('^(((mouse ?|button ?)*(right ?)?)?((attack[^1-9]*)|(rclick|right click|rightclick))|(mouse ?|button ?|click ?)+right) ?([1-9])?', 'i'),
     "close": new RegExp('^(close|clear) ?([1-9])?$', 'i'),
     "enter": new RegExp('^(enter) ?([1-9])?$', 'i'),
     "number": new RegExp('^([1-9])$', 'i'),
-    "fkey": new RegExp('^(f[1-8])$', 'i'),
+    "fkey": new RegExp('^((use|skill|f) ?)+([1-8])$', 'i'),
     "numpad": new RegExp('^num([0-7])$', 'i'),
     "run": new RegExp('^(run|walk|r) ?([1-9])?$', 'i'),
     "swap": new RegExp('^(swap|w) ?([1-9])?$', 'i'),
@@ -81,6 +81,8 @@ var commands = {
     "merc": new RegExp('^(merc)([1-9])?$', 'i'),
 
     "social": new RegExp('^(social|talk|gossip) ?([1-6])$', 'i'),
+
+    "bindskill": new RegExp('^((((skill|bind|f) ?)+([1-8]) ?((left|right) ?)row ?([1-5]) ?col ?([1-9]|10))|(((skill|bind|f) ?)+([1-8]) ?row ?([1-5]) ?col ?([1-9]|10) ? (left|right)))$', 'i'),
 }
 
 var username = process.env.TWITCH_USERNAME || nconf.get('TWITCH_USERNAME');
@@ -150,7 +152,7 @@ var config = {
     throttledCommands: throttledCommands || {},
 
     keyRepeatDelay: keyRepeatDelay || keyRepeatDelay === 0 ? keyRepeatDelay : 300,
-    mouseRepeatDelay: mouseRepeatDelay || mouseRepeatDelay === 0 ? mouseRepeatDelay : 250,
+    mouseRepeatDelay: mouseRepeatDelay || mouseRepeatDelay === 0 ? mouseRepeatDelay : 100,
 
     sendKey: sendKey,
     commands: commands,

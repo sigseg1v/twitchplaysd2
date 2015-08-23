@@ -1,3 +1,10 @@
+#About
+
+Welcome to Twitch Plays D2.
+Enter commands in chat to control the character.
+
+Note: *This uses no hacks, no game editing, no memory reading, and no process injection; it simply reads chat, and then moves the keyboard and mouse of the computer it is connected to, which just so happens to have Diablo II open on it. It in no way interacts with the game executable and cannot read anything from the game. It is an open-loop system. I will not implement anything that you can't already do in the normal game.*
+
 #Actions
 
 *All actions can have 1-9 after them except for those already ending in a number*
@@ -5,10 +12,6 @@
 - click -- *clicks left mouse*
 
 - rclick -- *clicks right mouse*
-
-- left repeat -- *repeatedly clicks left mouse until a different action occurs*
-
-- right repeat -- *repeatedly clicks right mouse until a different action occurs*
 
 - close -- *close all open windows*
 

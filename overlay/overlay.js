@@ -18,6 +18,8 @@
         var self = this;
         self.actionCommand = ko.observable("").extend({ notify: 'always' });
         self.movementCommand = ko.observable("").extend({ notify: 'always' });
+        self.mouseCommand = ko.observable("").extend({ notify: 'always' });
+        self.repeat = ko.observable("OFF").extend({ notify: 'always' });
         self.chat = ko.observableArray();
 
         self.actionVoteMap = ko.observable({}).extend({ notify: 'always' });
@@ -28,13 +30,13 @@
             });
         });
 
-        self.movementVoteMap = ko.observable({}).extend({ notify: 'always' });
-        self.delayUntilNextMovement = ko.observable(0).extend({ notify: 'always' });
-        self.movementVoteList = ko.pureComputed(function () {
-            return Object.keys(self.movementVoteMap()).map(function (key) {
-                return self.movementVoteMap()[key];
-            });
-        });
+        // self.movementVoteMap = ko.observable({}).extend({ notify: 'always' });
+        // self.delayUntilNextMovement = ko.observable(0).extend({ notify: 'always' });
+        // self.movementVoteList = ko.pureComputed(function () {
+        //     return Object.keys(self.movementVoteMap()).map(function (key) {
+        //         return self.movementVoteMap()[key];
+        //     });
+        // });
     }
 
     function createD3Chart(selector, swatchSelector, data) {
@@ -173,7 +175,7 @@
         socket = require('socket.io-client')(process.env.OVERLAY_HOST + ':' + process.env.OVERLAY_PORT + '/client');
 
         var actionVoteChart = createD3Chart(".action-vote .vis", ".action-vote .bars", []);
-        var movementVoteChart = createD3Chart(".movement-vote .vis", ".movement-vote .bars", []);
+        //var movementVoteChart = createD3Chart(".movement-vote .vis", ".movement-vote .bars", []);
 
         vm.actionVoteList.subscribe(function (list) {
             actionVoteChart.update(list);
@@ -181,12 +183,12 @@
         vm.delayUntilNextAction.subscribe(function (delay) {
             actionVoteChart.restartCountdown(delay);
         });
-        vm.movementVoteList.subscribe(function (list) {
-            movementVoteChart.update(list);
-        });
-        vm.delayUntilNextMovement.subscribe(function (delay) {
-            movementVoteChart.restartCountdown(delay);
-        });
+        // vm.movementVoteList.subscribe(function (list) {
+        //     movementVoteChart.update(list);
+        // });
+        // vm.delayUntilNextMovement.subscribe(function (delay) {
+        //     movementVoteChart.restartCountdown(delay);
+        // });
 
         socket.on('connect', function () {
             console.log('Connected to overlay socket.io server.');
@@ -213,25 +215,34 @@
                         // only clear the mouse if there is a new location, since it will stay where it was left
                         vm.movementCommand(command.description);
                     }
-                    vm.delayUntilNextMovement(command.delay);
-                    if (vm.movementVoteList().length !== 0) {
-                        vm.movementVoteMap({});
+                    // vm.delayUntilNextMovement(command.delay);
+                    // if (vm.movementVoteList().length !== 0) {
+                    //     vm.movementVoteMap({});
+                    // }
+                } else if (command.type === 'mouseAction') {
+                    if (command.description) {
+                        // only clear the mouse if there is a new location, since it will stay where it was left
+                        vm.mouseCommand(command.description);
                     }
                 }
             } else {
                 console.log('Unknown command received:', command);
             }
         });
+        socket.on('repeatToggle', function (val) {
+            vm.repeat(val ? 'ON' : 'OFF');
+        });
         socket.on('vote', function (data) {
             if (data.group === 'action') {
                 var voteMap = vm.actionVoteMap();
                 voteMap[data.id] = data;
                 vm.actionVoteMap(voteMap);
-            } else if (data.group === 'movement') {
-                var voteMap = vm.movementVoteMap();
-                voteMap[data.id] = data;
-                vm.movementVoteMap(voteMap);
             }
+            // else if (data.group === 'movement') {
+            //     var voteMap = vm.movementVoteMap();
+            //     voteMap[data.id] = data;
+            //     vm.movementVoteMap(voteMap);
+            // }
         });
 
         clearInterval(chatMessageFadeInterval);

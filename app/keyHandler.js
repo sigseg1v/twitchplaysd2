@@ -12,19 +12,8 @@ for (var i = 0; i < throttledCommandList.length; i++) {
     lastTime[throttledCommandList[i]] = new Date().getTime();
 }
 
-var commandTypes = {
-    'action': {
-        minDelay: 1000
-    },
-    'movement': {
-        minDelay: 500
-    }
-}
-
 var commandAggregator = {};
-Object.keys(commandTypes).forEach(function (type) {
-    commandAggregator[type] = {};
-});
+
 
 var commandSequenceNumber = 1;
 
@@ -54,6 +43,8 @@ var mouseMappings = {
 };
 
 var state = {
+    repeatEnabled: false,
+
     mouseX: 0,
     mouseY: 0,
 
@@ -91,6 +82,7 @@ function Action(key, mouse, desc) {
     self.count = 1;
     self.group = 'action';
     self.continuous = false;
+    self.canBeGlobalContinuous = false;
 }
 Action.prototype.toJSON = function () {
     // this, stringified, is literally the key to determine whether two objects are equal, so don't add extra properties
@@ -121,46 +113,138 @@ Action.prototype.setCount = function (val) {
 Action.prototype.delay = function () {
     return Math.max(this.mouse ? (this.count - 1) * config.mouseRepeatDelay : 0, this.key ? (this.count - 1) * config.keyRepeatDelay : 0);
 };
-Action.prototype.setContinuous = function(val) {
+Action.prototype.setThisContinuous = function(val) {
     if (val !== undefined) {
         this.continuous = !!val;
     }
     return this;
+};
+Action.prototype.enableGlobalContinuous = function () {
+    this.canBeGlobalContinuous = true;
+    return this;
+};
+
+// action that represents a mouse or interface movement
+function MovementAction(mouse, key, desc) {
+    var self = this;
+    Action.call(self, key, mouse, desc);
+    self.group = 'movement';
 }
+MovementAction.prototype = Object.create(Action.prototype, { constructor: { value: MovementAction } });
 
 // action that represents a mouse or interface movement
 function MouseAction(mouse, key, desc) {
     var self = this;
     Action.call(self, key, mouse, desc);
-    self.group = 'movement';
+    self.group = 'mouseAction';
 }
 MouseAction.prototype = Object.create(Action.prototype, { constructor: { value: MouseAction } });
 
+// storedFunc can be a promise
+function StoredAction(storedFunc) {
+    var self = this;
+    Action.call(self, null, null, null);
+    self.canBeGlobalContinuous = false;
+    self.stored = storedFunc;
+}
+StoredAction.prototype = Object.create(Action.prototype, { constructor: { value: StoredAction } });
+
+// calls stored function. If the stored function returns a truthy result, then keeps calling the result in a sequential promise chain until one returns false
+StoredAction.prototype.run = function (events) {
+    var self = this;
+
+    var stored = self.stored;
+    var res = stored(events);
+    // this is a way of casting an object into a promise (instead of checking for .then)
+    var resPromise = Promise.resolve(res);
+    while (res) {
+        // call next
+        res = res(events);
+        if (res) {
+            resPromise = resPromise.then(Promise.resolve(res));
+        }
+    }
+    return resPromise;
+};
+
 var specialActions = {
-    ESCAPE: new Action('{Esc}{Space}').description('esc') // this is for resurrection of dead player -- the actual command is a separate script, so the keys here are for fallback
+    ESCAPE: new Action('{Esc}{Space}').description('esc'), // this is for resurrection of dead player -- the actual command is a separate script, so the keys here are for fallback
+    REPEAT: new StoredAction(function (events) {
+        if (events) {
+            events.emit('repeatToggle', true);
+        }
+        state.repeatEnabled = true;
+        var next = null;
+        return next;
+    }).description('repeat on'),
+    REPEATOFF: new StoredAction(function (events) {
+        if (events) {
+            events.emit('repeatToggle', false);
+        }
+        state.repeatEnabled = false;
+        var next = null;
+        return next;
+    }).description('repeat off'),
+    BINDSKILLFACTORY: function (side, fKeyNum, row, col) {
+        return new StoredAction(function (events) {
+            var row_re = config.commands["skill row"];
+            var left_col_re = config.commands["left col"];
+            var right_col_re = config.commands["right col"];
+            var fkey_re = config.commands["fkey"];
+
+            var row_actionFunc = actionMap["skill row"];
+            var left_col_actionFunc = actionMap["left col"];
+            var right_col_actionFunc = actionMap["right col"];
+            var fkey_actionFunc = actionMap["fkey"];
+
+            // actions to perform
+            var openLeftMenu = actionMap["left menu"]();
+            var openRightMenu = actionMap["right menu"]();
+            var moveRow = row_actionFunc(("skill row " + row).match(row_re));
+            var moveCol;
+            var pushKey = fkey_actionFunc(("f" + fKeyNum).match(fkey_re));
+
+            if (side === "left") {
+                moveCol = left_col_actionFunc(("left skill col " + col).match(left_col_re));
+            } else {
+                moveCol = right_col_actionFunc(("right skill col " + col).match(right_col_re));
+            }
+
+            executeAction(side === "left" ? openLeftMenu : openRightMenu, events)
+                .then(executeAction.bind(null, moveRow, events))
+                .then(executeAction.bind(null, moveCol, events))
+                .then(executeAction.bind(null, pushKey, events));
+
+            var next = null;
+            return next;
+        }).description('bind skill');
+    }
 };
 
 var actionMap = {
-    "esc": function () { return specialActions.ESCAPE; },
-    "center": function () { return new MouseAction({ x: 400, y: 282 }).description('center'); },
-    "left": function (match) { return new MouseAction({ x: 360 - (toActionCount(match[1], 0, 3) * 50), y: 282, left: true }, '{Left}').description(descriptionFormat('left', match[1])); },
-    "upleft": function (match) { return new MouseAction({ x: 360 - (toActionCount(match[1], 0, 3) * 50), y: 242 - (toActionCount(match[1], 0, 3) * 50), left: true }).description(descriptionFormat('upleft', match[1])); },
-    "up": function (match) { return new MouseAction({ x: 400, y: 242 - (toActionCount(match[1], 0, 3) * 50), left: true }, '{Up}').description(descriptionFormat('up', match[1])); },
-    "upright": function (match) { return new MouseAction({ x: 440 + (toActionCount(match[1], 0, 3) * 50), y: 242 - (toActionCount(match[1], 0, 3) * 50), left: true }).description(descriptionFormat('upright', match[1])); },
-    "right": function (match) { return new MouseAction({ x: 440 + (toActionCount(match[1], 0, 3) * 50), y: 282, left: true }, '{Right}').description(descriptionFormat('right', match[1])); },
-    "downright": function (match) { return new MouseAction({ x: 440 + (toActionCount(match[1], 0, 3) * 50), y: 322 + (toActionCount(match[1], 0, 3) * 50), left: true }).description(descriptionFormat('downright', match[1])); },
-    "down": function (match) { return new MouseAction({ x: 400, y: 322 + (toActionCount(match[1], 0, 3) * 50), left: true }, '{Down}').description(descriptionFormat('down', match[1])); },
-    "downleft": function (match) { return new MouseAction({ x: 360 - (toActionCount(match[1], 0, 3) * 50), y: 322 + (toActionCount(match[1], 0, 3) * 50), left: true }).description(descriptionFormat('downleft', match[1])); },
+    "repeat": function () { return specialActions.REPEAT; },
+    "repeatoff": function () { return specialActions.REPEATOFF; },
 
-    "str": function () { return new MouseAction({ x: 220, y: 150 }).description('str'); },
-    "dex": function () { return new MouseAction({ x: 220, y: 215 }).description('dex'); },
-    "vit": function () { return new MouseAction({ x: 220, y: 300 }).description('vit'); },
-    "energy": function () { return new MouseAction({ x: 220, y: 360 }).description('energy'); },
+    "esc": function () { return specialActions.ESCAPE; },
+    "center": function () { return new MovementAction({ x: 400, y: 282 }).description('center'); },
+    "left": function (match) { return new MovementAction({ x: 360 - (toActionCount(match[3], 0, 3) * 50), y: 282, left: true }).description(descriptionFormat('left', match[3])).enableGlobalContinuous(); },
+    "upleft": function (match) { return new MovementAction({ x: 360 - (toActionCount(match[4], 0, 3) * 50), y: 242 - (toActionCount(match[4], 0, 3) * 50), left: true }).description(descriptionFormat('upleft', match[4])).enableGlobalContinuous(); },
+    "up": function (match) { return new MovementAction({ x: 400, y: 242 - (toActionCount(match[3], 0, 3) * 50), left: true }).description(descriptionFormat('up', match[3])).enableGlobalContinuous(); },
+    "upright": function (match) { return new MovementAction({ x: 440 + (toActionCount(match[4], 0, 3) * 50), y: 242 - (toActionCount(match[4], 0, 3) * 50), left: true }).description(descriptionFormat('upright', match[4])).enableGlobalContinuous(); },
+    "right": function (match) { return new MovementAction({ x: 440 + (toActionCount(match[3], 0, 3) * 50), y: 282, left: true }).description(descriptionFormat('right', match[3])).enableGlobalContinuous(); },
+    "downright": function (match) { return new MovementAction({ x: 440 + (toActionCount(match[4], 0, 3) * 50), y: 322 + (toActionCount(match[4], 0, 3) * 50), left: true }).description(descriptionFormat('downright', match[4])).enableGlobalContinuous(); },
+    "down": function (match) { return new MovementAction({ x: 400, y: 322 + (toActionCount(match[3], 0, 3) * 50), left: true }).description(descriptionFormat('down', match[3])).enableGlobalContinuous(); },
+    "downleft": function (match) { return new MovementAction({ x: 360 - (toActionCount(match[4], 0, 3) * 50), y: 322 + (toActionCount(match[4], 0, 3) * 50), left: true }).description(descriptionFormat('downleft', match[4])).enableGlobalContinuous(); },
+
+    "str": function () { return new MovementAction({ x: 220, y: 150 }).description('str'); },
+    "dex": function () { return new MovementAction({ x: 220, y: 215 }).description('dex'); },
+    "vit": function () { return new MovementAction({ x: 220, y: 300 }).description('vit'); },
+    "energy": function () { return new MovementAction({ x: 220, y: 360 }).description('energy'); },
 
     'belt': function (match) {
         var slotNumber = parseInt(match[1]);
         if (slotNumber === 1 || slotNumber === 2 || slotNumber === 3 || slotNumber === 4) {
-            return new MouseAction(null, "" + slotNumber).description('belt' + slotNumber);
+            return new MovementAction(null, "" + slotNumber).description('belt' + slotNumber);
         } else {
             return null;
         }
@@ -171,125 +255,125 @@ var actionMap = {
         var slotNumber = parseInt(match[1]);
         if (mouseMappings.treeTab.length > slotNumber - 1) {
             var index = slotNumber - 1;
-            return new MouseAction({ x: x, y: mouseMappings.treeTab[index] }).description('tree tab ' + slotNumber);
+            return new MovementAction({ x: x, y: mouseMappings.treeTab[index] }).description('tree tab ' + slotNumber);
         }
         return null;
     },
     "tree row": function (match) {
         var slotNumber = parseInt(match[1]);
         state.treeRow = slotNumber;
-        return rowColToMouseAction(state.treeRow, state.treeCol, mouseMappings.treeRow, mouseMappings.treeCol).description('tree row ' + slotNumber);
+        return rowColToMovementAction(state.treeRow, state.treeCol, mouseMappings.treeRow, mouseMappings.treeCol).description('tree row ' + slotNumber);
     },
     "tree col": function (match) {
         var slotNumber = parseInt(match[1]);
         state.treeCol = slotNumber;
-        return rowColToMouseAction(state.treeRow, state.treeCol, mouseMappings.treeRow, mouseMappings.treeCol).description('tree col ' + slotNumber);
+        return rowColToMovementAction(state.treeRow, state.treeCol, mouseMappings.treeRow, mouseMappings.treeCol).description('tree col ' + slotNumber);
     },
 
     "skill row": function (match) {
-        var slotNumber = parseInt(match[1]);
+        var slotNumber = parseInt(match[2]);
         state.skillRow = slotNumber;
-        return rowColToMouseAction(state.skillRow, state.lastSkillSide === 'right' ? state.rightCol : state.leftCol, mouseMappings.skillRow, state.lastSkillSide === 'right' ? mouseMappings.rightCol : mouseMappings.leftCol).description('skill row ' + slotNumber);
+        return rowColToMovementAction(state.skillRow, state.lastSkillSide === 'right' ? state.rightCol : state.leftCol, mouseMappings.skillRow, state.lastSkillSide === 'right' ? mouseMappings.rightCol : mouseMappings.leftCol).description('skill row ' + slotNumber);
     },
     "right col": function (match) {
-        var slotNumber = parseInt(match[1]);
+        var slotNumber = parseInt(match[2]);
         state.rightCol = slotNumber;
         state.lastSkillSide = 'right';
-        return rowColToMouseAction(state.skillRow, state.rightCol, mouseMappings.skillRow, mouseMappings.rightCol).description('right col ' + slotNumber);
+        return rowColToMovementAction(state.skillRow, state.rightCol, mouseMappings.skillRow, mouseMappings.rightCol).description('right col ' + slotNumber);
     },
     "left col": function (match) {
-        var slotNumber = parseInt(match[1]);
+        var slotNumber = parseInt(match[2]);
         state.leftCol = slotNumber;
         state.lastSkillSide = 'left';
-        return rowColToMouseAction(state.skillRow, state.leftCol, mouseMappings.skillRow, mouseMappings.leftCol).description('left col ' + slotNumber);
+        return rowColToMovementAction(state.skillRow, state.leftCol, mouseMappings.skillRow, mouseMappings.leftCol).description('left col ' + slotNumber);
     },
 
     "inv row": function (match) {
         var slotNumber = parseInt(match[1]);
         state.invRow = slotNumber;
-        return rowColToMouseAction(state.invRow, state.invCol, mouseMappings.invRow, mouseMappings.invCol).description('inv row ' + slotNumber);
+        return rowColToMovementAction(state.invRow, state.invCol, mouseMappings.invRow, mouseMappings.invCol).description('inv row ' + slotNumber);
     },
     "inv col": function (match) {
         var slotNumber = parseInt(match[1]);
         state.invCol = slotNumber;
-        return rowColToMouseAction(state.invRow, state.invCol, mouseMappings.invRow, mouseMappings.invCol).description('inv col ' + slotNumber);
+        return rowColToMovementAction(state.invRow, state.invCol, mouseMappings.invRow, mouseMappings.invCol).description('inv col ' + slotNumber);
     },
 
     "stash row": function (match) {
         var slotNumber = parseInt(match[1]);
         state.stashRow = slotNumber;
-        return rowColToMouseAction(state.stashRow, state.stashCol, mouseMappings.stashRow, mouseMappings.stashCol).description('stash row ' + slotNumber);
+        return rowColToMovementAction(state.stashRow, state.stashCol, mouseMappings.stashRow, mouseMappings.stashCol).description('stash row ' + slotNumber);
     },
     "stash col": function (match) {
         var slotNumber = parseInt(match[1]);
         state.stashCol = slotNumber;
-        return rowColToMouseAction(state.stashRow, state.stashCol, mouseMappings.stashRow, mouseMappings.stashCol).description('stash col ' + slotNumber);
+        return rowColToMovementAction(state.stashRow, state.stashCol, mouseMappings.stashRow, mouseMappings.stashCol).description('stash col ' + slotNumber);
     },
 
     "quest row": function (match) {
         var slotNumber = parseInt(match[1]);
         state.questRow = slotNumber;
-        return rowColToMouseAction(state.questRow, state.questCol, mouseMappings.questRow, mouseMappings.questCol).description('quest row ' + slotNumber);
+        return rowColToMovementAction(state.questRow, state.questCol, mouseMappings.questRow, mouseMappings.questCol).description('quest row ' + slotNumber);
     },
     "quest col": function (match) {
         var slotNumber = parseInt(match[1]);
         state.questCol = slotNumber;
-        return rowColToMouseAction(state.questRow, state.questCol, mouseMappings.questRow, mouseMappings.questCol).description('quest col ' + slotNumber);
+        return rowColToMovementAction(state.questRow, state.questCol, mouseMappings.questRow, mouseMappings.questCol).description('quest col ' + slotNumber);
     },
-    "quest speech": function () { return new MouseAction({ x: 321, y: 468 }).description('quest speech'); },
+    "quest speech": function () { return new MovementAction({ x: 321, y: 468 }).description('quest speech'); },
 
-    "repair": function () { return new MouseAction({ x: 316, y: 464 }).description('repair'); },
-    "repair all": function () { return new MouseAction({ x: 369, y: 464 }).description('repair all'); },
+    "repair": function () { return new MovementAction({ x: 316, y: 464 }).description('repair'); },
+    "repair all": function () { return new MovementAction({ x: 369, y: 464 }).description('repair all'); },
     "vendor row": function (match) {
         var slotNumber = parseInt(match[1]);
         state.vendorRow = slotNumber;
-        return rowColToMouseAction(state.vendorRow, state.vendorCol, mouseMappings.vendorRow, mouseMappings.vendorCol).description('vendor row ' + slotNumber);
+        return rowColToMovementAction(state.vendorRow, state.vendorCol, mouseMappings.vendorRow, mouseMappings.vendorCol).description('vendor row ' + slotNumber);
     },
     "vendor col": function (match) {
         var slotNumber = parseInt(match[1]);
         state.vendorCol = slotNumber;
-        return rowColToMouseAction(state.vendorRow, state.vendorCol, mouseMappings.vendorRow, mouseMappings.vendorCol).description('vendor col ' + slotNumber);
+        return rowColToMovementAction(state.vendorRow, state.vendorCol, mouseMappings.vendorRow, mouseMappings.vendorCol).description('vendor col ' + slotNumber);
     },
 
 
     "cube row": function (match) {
         var slotNumber = parseInt(match[1]);
         state.cubeRow = slotNumber;
-        return rowColToMouseAction(state.cubeRow, state.cubeCol, mouseMappings.cubeRow, mouseMappings.cubeCol).description('cube row ' + slotNumber);
+        return rowColToMovementAction(state.cubeRow, state.cubeCol, mouseMappings.cubeRow, mouseMappings.cubeCol).description('cube row ' + slotNumber);
     },
     "cube col": function (match) {
         var slotNumber = parseInt(match[1]);
         state.cubeCol = slotNumber;
-        return rowColToMouseAction(state.cubeRow, state.cubeCol, mouseMappings.cubeRow, mouseMappings.cubeCol).description('cube col ' + slotNumber);
+        return rowColToMovementAction(state.cubeRow, state.cubeCol, mouseMappings.cubeRow, mouseMappings.cubeCol).description('cube col ' + slotNumber);
     },
-    "cube transmute": function () { return new MouseAction({ x: 239, y: 338 }).description('cube transmute'); },
+    "cube transmute": function () { return new MovementAction({ x: 239, y: 338 }).description('cube transmute'); },
 
-    "orifice": function () { return new MouseAction({ x: 165, y: 170 }).description('orifice'); },
-    "orifice ok": function () { return new MouseAction({ x: 137, y: 245 }).description('orifice ok'); },
+    "orifice": function () { return new MovementAction({ x: 165, y: 170 }).description('orifice'); },
+    "orifice ok": function () { return new MovementAction({ x: 137, y: 245 }).description('orifice ok'); },
 
     "inv slot": function (match) {
         var slot = match[2];
         switch(slot) {
             case "weapon":
-                return new MouseAction({ x: 449, y: 164 }).description('inv ' + slot);
+                return new MovementAction({ x: 449, y: 164 }).description('inv ' + slot);
             case "offhand":
-                return new MouseAction({ x: 678, y: 164 }).description('inv ' + slot);
+                return new MovementAction({ x: 678, y: 164 }).description('inv ' + slot);
             case "head":
-                return new MouseAction({ x: 563, y: 95 }).description('inv ' + slot);
+                return new MovementAction({ x: 563, y: 95 }).description('inv ' + slot);
             case "neck":
-                return new MouseAction({ x: 620, y: 108 }).description('inv ' + slot);
+                return new MovementAction({ x: 620, y: 108 }).description('inv ' + slot);
             case "chest":
-                return new MouseAction({ x: 560, y: 180 }).description('inv ' + slot);
+                return new MovementAction({ x: 560, y: 180 }).description('inv ' + slot);
             case "gloves":
-                return new MouseAction({ x: 446, y: 270 }).description('inv ' + slot);
+                return new MovementAction({ x: 446, y: 270 }).description('inv ' + slot);
             case "lring":
-                return new MouseAction({ x: 506, y: 252 }).description('inv ' + slot);
+                return new MovementAction({ x: 506, y: 252 }).description('inv ' + slot);
             case "rring":
-                return new MouseAction({ x: 620, y: 252 }).description('inv ' + slot);
+                return new MovementAction({ x: 620, y: 252 }).description('inv ' + slot);
             case "belt":
-                return new MouseAction({ x: 560, y: 252 }).description('inv ' + slot);
+                return new MovementAction({ x: 560, y: 252 }).description('inv ' + slot);
             case "boots":
-                return new MouseAction({ x: 678, y: 270 }).description('inv ' + slot);
+                return new MovementAction({ x: 678, y: 270 }).description('inv ' + slot);
             default:
                 return null;
         }
@@ -298,42 +382,42 @@ var actionMap = {
         var slot = match[1];
         switch(slot) {
             case "weapon":
-                return new MouseAction({ x: 128, y: 166 }).description('merc ' + slot);
+                return new MovementAction({ x: 128, y: 166 }).description('merc ' + slot);
             case "offhand":
-                return new MouseAction({ x: 358, y: 166 }).description('merc ' + slot);
+                return new MovementAction({ x: 358, y: 166 }).description('merc ' + slot);
             case "head":
-                return new MouseAction({ x: 242, y: 96 }).description('merc ' + slot);
+                return new MovementAction({ x: 242, y: 96 }).description('merc ' + slot);
             case "chest":
-                return new MouseAction({ x: 242, y: 181 }).description('merc ' + slot);
+                return new MovementAction({ x: 242, y: 181 }).description('merc ' + slot);
             default:
                 return null;
         }
     },
 
-    "inv gold": function () { return new MouseAction({ x: 494, y: 463 }).description('inv gold'); },
-    "stash gold": function () { return new MouseAction({ x: 165, y: 93 }).description('stash gold'); },
+    "inv gold": function () { return new MovementAction({ x: 494, y: 463 }).description('inv gold'); },
+    "stash gold": function () { return new MovementAction({ x: 165, y: 93 }).description('stash gold'); },
 
     "wp": function (match) {
         var slot = parseInt(match[1]);
         switch(slot) {
             case 1:
-                return new MouseAction({ x: 112, y: 134 }).description('wp' + slot);
+                return new MovementAction({ x: 112, y: 134 }).description('wp' + slot);
             case 2:
-                return new MouseAction({ x: 112, y: 170 }).description('wp' + slot);
+                return new MovementAction({ x: 112, y: 170 }).description('wp' + slot);
             case 3:
-                return new MouseAction({ x: 112, y: 210 }).description('wp' + slot);
+                return new MovementAction({ x: 112, y: 210 }).description('wp' + slot);
             case 4:
-                return new MouseAction({ x: 112, y: 246 }).description('wp' + slot);
+                return new MovementAction({ x: 112, y: 246 }).description('wp' + slot);
             case 5:
-                return new MouseAction({ x: 112, y: 281 }).description('wp' + slot);
+                return new MovementAction({ x: 112, y: 281 }).description('wp' + slot);
             case 6:
-                return new MouseAction({ x: 112, y: 317 }).description('wp' + slot);
+                return new MovementAction({ x: 112, y: 317 }).description('wp' + slot);
             case 7:
-                return new MouseAction({ x: 112, y: 353 }).description('wp' + slot);
+                return new MovementAction({ x: 112, y: 353 }).description('wp' + slot);
             case 8:
-                return new MouseAction({ x: 112, y: 389 }).description('wp' + slot);
+                return new MovementAction({ x: 112, y: 389 }).description('wp' + slot);
             case 9:
-                return new MouseAction({ x: 112, y: 424 }).description('wp' + slot);
+                return new MovementAction({ x: 112, y: 424 }).description('wp' + slot);
             default:
                 return null;
         }
@@ -342,28 +426,26 @@ var actionMap = {
         var slot = parseInt(match[1]);
         switch(slot) {
             case 1:
-                return new MouseAction({ x: 119, y: 80 }).description('wp tab' + slot);
+                return new MovementAction({ x: 119, y: 80 }).description('wp tab' + slot);
             case 2:
-                return new MouseAction({ x: 181, y: 80 }).description('wp tab' + slot);
+                return new MovementAction({ x: 181, y: 80 }).description('wp tab' + slot);
             case 3:
-                return new MouseAction({ x: 239, y: 80 }).description('wp tab' + slot);
+                return new MovementAction({ x: 239, y: 80 }).description('wp tab' + slot);
             case 4:
-                return new MouseAction({ x: 304, y: 80 }).description('wp tab' + slot);
+                return new MovementAction({ x: 304, y: 80 }).description('wp tab' + slot);
             case 5:
-                return new MouseAction({ x: 364, y: 80 }).description('wp tab' + slot);
+                return new MovementAction({ x: 364, y: 80 }).description('wp tab' + slot);
             default:
                 return null;
         }
     },
 
-    "leftrepeat": function (match) { return new Action(null, { left: true }).setContinuous(true).setCount(match[2]).description('repeatleft'); },
-    "rightrepeat": function (match) { return new Action(null, { right: true }).setContinuous(true).setCount(match[2]).description('repeatright'); },
-    "click": function (match) { return new Action(null, { left: true }).setCount(match[2]).description(descriptionFormat('click', match[2])); },
-    "rclick": function (match) { return new Action(null, { right: true }).setCount(match[2]).description(descriptionFormat('rclick', match[2])); },
+    "click": function (match) { return new MouseAction({ left: true }).setCount(match[7]).description(descriptionFormat('lclick', match[7])).enableGlobalContinuous(); },
+    "rclick": function (match) { return new MouseAction({ right: true }).setCount(match[9]).description(descriptionFormat('rclick', match[9])).enableGlobalContinuous(); },
     "close": function (match) { return new Action('{Space}').setCount(match[2]).description(descriptionFormat('close', match[2])); },
     "enter": function (match) { return new Action('{Enter}').setCount(match[2]).description(descriptionFormat('enter', match[2])); },
     "number": function (match) { return new Action("{" + parseInt(match[1]) + "}").description('' + parseInt(match[1])); },
-    "fkey": function (match) { return new Action("{F" + parseInt(match[1]) + "}").description('F' + parseInt(match[1])); },
+    "fkey": function (match) { return new Action("{F" + parseInt(match[3]) + "}").description('F' + parseInt(match[3])); },
     "numpad": function (match) { return new Action("{Numpad" + parseInt(match[1]) + "}").description('num' + parseInt(match[1])); },
     "run": function (match) { return new Action('{R}').setCount(match[2]).description(descriptionFormat('run', match[2])); },
     "swap": function (match) { return new Action('{W}').setCount(match[2]).description(descriptionFormat('swap', match[2])); },
@@ -386,16 +468,47 @@ var actionMap = {
         var action = new Action('{Down}'.repeat(actionCount) + '{Enter}').description(descriptionFormat('social', match[2]));
         action.count = actionCount + 1;
         return action;
+    },
+
+    "bindskill": function (match) {
+        var side = "right";
+        if (match[7] && match[7].toLowerCase() === "left" || match[16] && match[16].toLowerCase() === "left") {
+            side = "left";
+        }
+        var keyNum = match[5] || match[13];
+        var row = parseInt(match[8] || match [14]);
+        var col = parseInt(match[9] || match[15]);
+        if (isNaN(row) || isNaN(col)) {
+            return null;
+        }
+        return specialActions.BINDSKILLFACTORY(side, keyNum, row, col);
     }
 };
 
-function rowColToMouseAction(row, col, rowMappings, colMappings) {
+var commandTypes = {
+    'action': {
+        minDelay: 5000
+    },
+    'mouseAction' : {
+        minDelay: 100,
+        startAction: actionMap["click"]
+    },
+    'movement': {
+        minDelay: 500,
+        startAction: actionMap["center"]
+    }
+};
+Object.keys(commandTypes).forEach(function (type) {
+    commandAggregator[type] = {};
+});
+
+function rowColToMovementAction(row, col, rowMappings, colMappings) {
     var rowIndex = rowMappings.length > row - 1 ? row - 1 : -1;
     var colIndex = colMappings.length > col - 1 ? col - 1 : -1;
     if (rowIndex === -1 || colIndex === -1) {
         return null;
     } else {
-        return new MouseAction({ x: colMappings[colIndex], y: rowMappings[rowIndex] });
+        return new MovementAction({ x: colMappings[colIndex], y: rowMappings[rowIndex] });
     }
 }
 
@@ -480,7 +593,7 @@ function clearCommandQueue(type) {
     }
 }
 
-function executeAction(action) {
+function executeAction(action, events) {
     var promises = [];
     if (action === specialActions.ESCAPE) {
         // escape is dangerous in d2, so we have a special script that executes it safely
@@ -489,11 +602,13 @@ function executeAction(action) {
         }
     } else {
         if (action.key) {
+            var repeatDelay = config.keyRepeatDelay;
             if (config.sendKey) {
-                promises.push(exec('autohotkey ./app/sendkey.ahk ' + action.key + ' ' + config.keyRepeatDelay));
+                promises.push(exec('autohotkey ./app/sendkey.ahk ' + action.key + ' ' + repeatDelay));
             }
         }
         if (action.mouse) {
+            var repeatDelay = config.mouseRepeatDelay;
             if (action.mouse.hasOwnProperty('x') && action.mouse.hasOwnProperty('y')) {
                 state.mouseX = action.mouse.x;
                 state.mouseY = action.mouse.y;
@@ -507,13 +622,17 @@ function executeAction(action) {
             }
             if (action.mouse.left) {
                 if (config.sendKey) {
-                    promises.push(exec('autohotkey ./app/clickmouseat.ahk ' + x + ' ' + y + ' left ' + (action.mouse.count || '1') + ' ' + config.mouseRepeatDelay));
+                    promises.push(exec('autohotkey ./app/clickmouseat.ahk ' + x + ' ' + y + ' left ' + (action.mouse.count || '1') + ' ' + repeatDelay));
                 }
             } else if (action.mouse.right) {
                 if (config.sendKey) {
-                    promises.push(exec('autohotkey ./app/clickmouseat.ahk ' + x + ' ' + y + ' right ' + (action.mouse.count || '1') + ' ' + config.mouseRepeatDelay));
+                    promises.push(exec('autohotkey ./app/clickmouseat.ahk ' + x + ' ' + y + ' right ' + (action.mouse.count || '1') + ' ' + repeatDelay));
                 }
             }
+        }
+        if (action.stored) {
+            // this is a way of casting an object into a promise (instead of checking for .then)
+            promises.push(Promise.resolve(action.run(events)));
         }
     }
     return Promise.all(promises);
@@ -525,5 +644,6 @@ module.exports = {
     clearCommandQueue: clearCommandQueue,
     executeAction: executeAction,
     getCommandTypes: function () { return Object.keys(commandTypes); },
-    getOptionsForType: function (type) { return commandTypes[type]; }
+    getOptionsForType: function (type) { return commandTypes[type]; },
+    getState: function () { return state; }
 };
