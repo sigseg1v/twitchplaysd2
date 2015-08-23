@@ -36,7 +36,7 @@ serverNs.on('connection', function (socket) {
         clientNs.emit('vote', data);
     });
     socket.on('repeatToggle', function (data) {
-        clientNs.emit('vote', data);
+        clientNs.emit('repeatToggle', data);
     });
 });
 

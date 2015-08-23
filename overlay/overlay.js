@@ -229,8 +229,8 @@
                 console.log('Unknown command received:', command);
             }
         });
-        socket.on('repeatToggle', function (val) {
-            vm.repeat(val ? 'ON' : 'OFF');
+        socket.on('repeatToggle', function (data) {
+            vm.repeat(data.value ? 'ON' : 'OFF');
         });
         socket.on('vote', function (data) {
             if (data.group === 'action') {

@@ -171,7 +171,9 @@ var specialActions = {
     ESCAPE: new Action('{Esc}{Space}').description('esc'), // this is for resurrection of dead player -- the actual command is a separate script, so the keys here are for fallback
     REPEAT: new StoredAction(function (events) {
         if (events) {
-            events.emit('repeatToggle', true);
+            events.emit('repeatToggle', {
+                value: true
+            });
         }
         state.repeatEnabled = true;
         var next = null;
@@ -179,7 +181,9 @@ var specialActions = {
     }).description('repeat on'),
     REPEATOFF: new StoredAction(function (events) {
         if (events) {
-            events.emit('repeatToggle', false);
+            events.emit('repeatToggle', {
+                value: false
+            });
         }
         state.repeatEnabled = false;
         var next = null;
@@ -203,7 +207,7 @@ var specialActions = {
             var moveRow = row_actionFunc(("skill row " + row).match(row_re));
             var moveCol;
             var pushKey = fkey_actionFunc(("f" + fKeyNum).match(fkey_re));
-            var close = actionMap["close"]();
+            var close = actionMap["close"]([]);
 
             if (side === "left") {
                 moveCol = left_col_actionFunc(("left skill col " + col).match(left_col_re));
