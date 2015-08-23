@@ -18,9 +18,9 @@ Note: *This uses no hacks, no game editing, no memory reading, and no process in
 
 ###Repeating the mouse
 
-- repeat on -- makes the last mouse click repeat until stopped
+- repeat on -- *makes the last mouse click repeat until stopped*
 
-- repeat off -- stops repeat mode
+- repeat off -- *stops repeat mode*
 
 ###Moving
 

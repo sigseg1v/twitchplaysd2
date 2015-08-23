@@ -526,6 +526,12 @@ function toActionCount(str, low, high) {
         if (num >= low && num <= high) {
             return num;
         }
+        if (num >= high) {
+            return high;
+        }
+        if (num <= low) {
+            return low;
+        }
     }
     return low;
 }
