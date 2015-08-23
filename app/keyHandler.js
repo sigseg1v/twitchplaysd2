@@ -125,7 +125,7 @@ Action.prototype.setContinuous = function(val) {
     if (val !== undefined) {
         this.continuous = !!val;
     }
-    return !!this.continuous;
+    return this;
 }
 
 // action that represents a mouse or interface movement
