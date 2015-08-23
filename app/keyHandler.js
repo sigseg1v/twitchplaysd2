@@ -14,10 +14,10 @@ for (var i = 0; i < throttledCommandList.length; i++) {
 
 var commandTypes = {
     'action': {
-        minDelay: 5000
+        minDelay: 1000
     },
     'movement': {
-        minDelay: 3000
+        minDelay: 500
     }
 }
 

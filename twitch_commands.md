@@ -6,6 +6,10 @@
 
 - rclick -- *clicks right mouse*
 
+- left repeat -- *repeatedly clicks left mouse until a different action occurs*
+
+- right repeat -- *repeatedly clicks right mouse until a different action occurs*
+
 - close -- *close all open windows*
 
 - enter -- *pushes enter (usually opens chat window)*
