@@ -356,8 +356,8 @@ var actionMap = {
         }
     },
 
-    "leftrepeat": function (match) { return new Action(null, { left: true }).continuous(true).setCount(match[2]).description(descriptionFormat('click', match[2])); },
-    "rightrepeat": function (match) { return new Action(null, { right: true }).continuous(true).setCount(match[2]).description(descriptionFormat('click', match[2])); },
+    "leftrepeat": function (match) { return new Action(null, { left: true }).continuous(true).setCount(match[2]).description('repeatleft'); },
+    "rightrepeat": function (match) { return new Action(null, { right: true }).continuous(true).setCount(match[2]).description('repeatright'); },
     "click": function (match) { return new Action(null, { left: true }).setCount(match[2]).description(descriptionFormat('click', match[2])); },
     "rclick": function (match) { return new Action(null, { right: true }).setCount(match[2]).description(descriptionFormat('rclick', match[2])); },
     "close": function (match) { return new Action('{Space}').setCount(match[2]).description(descriptionFormat('close', match[2])); },
