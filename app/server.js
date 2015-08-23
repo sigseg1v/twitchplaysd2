@@ -160,11 +160,6 @@ function startCommandListenLoop(type) {
             console.log('executing', type, actionObj.desc);
             keyHandler.clearCommandQueue(type);
             var actionPromise = keyHandler.executeAction(actionObj);
-            Promise.all(options.minDelay ? [actionPromise, promiseDelay(options.minDelay)] : [actionPromise])
-                .catch(function () {
-                    console.log('Caught error while executing', type, actionObj);
-                })
-                .finally(getAndExecuteCommand);
 
             events.emit('command', {
                 type: type,
@@ -172,6 +167,12 @@ function startCommandListenLoop(type) {
                 delay: Math.max(options.minDelay || 0, actionObj.delay())
             });
             lastAction = actionObj;
+
+            Promise.all(options.minDelay ? [actionPromise, promiseDelay(options.minDelay)] : [actionPromise])
+                .catch(function () {
+                    console.log('Caught error while executing', type, actionObj);
+                })
+                .finally(getAndExecuteCommand);
         } else {
             var timeWait = 500; // if there is no command, still have a small guaranteed delay
             // tell those that are listening that there was no command to run
