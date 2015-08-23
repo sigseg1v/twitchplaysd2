@@ -1,17 +1,44 @@
-#About
+/////////About
 
 Welcome to Twitch Plays D2.
+
 Enter commands in chat to control the character.
 
 Note: *This uses no hacks, no game editing, no memory reading, and no process injection; it simply reads chat, and then moves the keyboard and mouse of the computer it is connected to, which just so happens to have Diablo II open on it. It in no way interacts with the game executable and cannot read anything from the game. It is an open-loop system. I will not implement anything that you can't already do in the normal game.*
 
-#Actions
 
-*All actions can have 1-9 after them except for those already ending in a number*
 
-- click -- *clicks left mouse*
+///////Main Actions
 
-- rclick -- *clicks right mouse*
+###Using the mouse
+
+- click / click1-9 -- *clicks left mouse*
+
+- rclick / rclick1-9 -- *clicks right mouse*
+
+###Repeating the mouse
+
+- repeat on -- makes the last mouse click repeat until stopped
+
+- repeat off -- stops repeat mode
+
+###Moving
+
+- see picture
+
+###Using Skills
+
+- f1-8 -- *pushes the F keys (can be bound to skills using the bind command)*
+
+- bind f1-8 (left|right) row1-5 col1-10 -- *binds skills to f-keys, example below*
+
+- bind f1 right row1 col1 -- *binds f1 to the right attack button*
+
+
+
+////////Other Actions
+
+#Windows and Buttons
 
 - close -- *close all open windows*
 
@@ -45,17 +72,9 @@ Note: *This uses no hacks, no game editing, no memory reading, and no process in
 
 - social1-6 -- *selects commands from npc social dialogs*
 
-
-
-
-
-
-
-
-
-
-
 #Mouse Positions
+
+*These all move the mouse to the specified location. You will have to click as a separate command.*
 
 ###Beside Character
 
@@ -102,8 +121,12 @@ Note: *This uses no hacks, no game editing, no memory reading, and no process in
 - tree col1-3
 
 ###Skill Quickbars
+* These offer more fine-tuned control of moving the mouse than the bind command, but the bind command is easier to use*
+
 - skill row1-5 -- *sets the row for both the left and right skill quickbars*
+
 - right col1-10 -- *sets the column for the right skill quickbar (only visible when opened)*
+
 - left col1-10 -- *sets the column for the right skill quickbar (only visible when opened)*
 
 ###Inventory Positions

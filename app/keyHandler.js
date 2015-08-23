@@ -203,6 +203,7 @@ var specialActions = {
             var moveRow = row_actionFunc(("skill row " + row).match(row_re));
             var moveCol;
             var pushKey = fkey_actionFunc(("f" + fKeyNum).match(fkey_re));
+            var close = actionMap["close"]();
 
             if (side === "left") {
                 moveCol = left_col_actionFunc(("left skill col " + col).match(left_col_re));
@@ -213,7 +214,8 @@ var specialActions = {
             executeAction(side === "left" ? openLeftMenu : openRightMenu, events)
                 .then(executeAction.bind(null, moveRow, events))
                 .then(executeAction.bind(null, moveCol, events))
-                .then(executeAction.bind(null, pushKey, events));
+                .then(executeAction.bind(null, pushKey, events))
+                .then(executeAction.bind(null, close, events));
 
             var next = null;
             return next;
