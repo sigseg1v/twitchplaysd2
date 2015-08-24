@@ -36,7 +36,7 @@ Note: *This uses no hacks, no game editing, no memory reading, and no process in
 
 
 
-////////Other Actions
+////////Other / Advanced Actions
 
 #Windows and Buttons
 
@@ -50,7 +50,7 @@ Note: *This uses no hacks, no game editing, no memory reading, and no process in
 
 - num0-7 -- *does voice emotes*
 
-- run -- *toggles run / walk*
+- walk -- *toggles run / walk*
 
 - swap -- *swaps weapons*
 

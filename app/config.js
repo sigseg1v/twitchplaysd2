@@ -3,15 +3,15 @@ var nconf = require('nconf').argv().env().file({ file:'config.json' });
 var commands = {
     "esc": new RegExp('^esc$'),
 
-    "center": new RegExp('^((mouse|pos|click|move) ?)*center', 'i'),
-    "left": new RegExp('^((mouse|pos|click|move) ?)*left ?([1-9])?', 'i'),
-    "upleft": new RegExp('^((mouse|pos|click|move) ?)*(up ?left|left ?up) ?([1-9])?', 'i'),
-    "up": new RegExp('^((mouse|pos|click|move) ?)*up ?([1-9])?', 'i'),
-    "upright": new RegExp('^((mouse|pos|click|move) ?)*(up ?right|right ?up) ?([1-9])?', 'i'),
-    "right": new RegExp('^((mouse|pos|click|move) ?)*right ?([1-9])?', 'i'),
-    "downright": new RegExp('^((mouse|pos|click|move) ?)*(down ?right|right ?down) ?([1-9])?', 'i'),
-    "down": new RegExp('^((mouse|pos|click|move) ?)*down ?([1-9])?', 'i'),
-    "downleft": new RegExp('^((mouse|pos|click|move) ?)*(down ?left|left ?down) ?([1-9])?', 'i'),
+    "center": new RegExp('^((mouse|pos|click|move) ?)*center$', 'i'),
+    "left": new RegExp('^((mouse|pos|click|move) ?)*left ?([1-9])?$', 'i'),
+    "upleft": new RegExp('^((mouse|pos|click|move) ?)*(up ?left|left ?up) ?([1-9])?$', 'i'),
+    "up": new RegExp('^((mouse|pos|click|move) ?)*up ?([1-9])?$', 'i'),
+    "upright": new RegExp('^((mouse|pos|click|move) ?)*(up ?right|right ?up) ?([1-9])?$', 'i'),
+    "right": new RegExp('^((mouse|pos|click|move) ?)*right ?([1-9])?$', 'i'),
+    "downright": new RegExp('^((mouse|pos|click|move) ?)*(down ?right|right ?down) ?([1-9])?$', 'i'),
+    "down": new RegExp('^((mouse|pos|click|move) ?)*down ?([1-9])?$', 'i'),
+    "downleft": new RegExp('^((mouse|pos|click|move) ?)*(down ?left|left ?down) ?([1-9])?$', 'i'),
 
     "repeat": new RegExp('^(mouse ?)?(repeat|rep|repeat ?on|rep ?on|repeat ?enable|rep ?enable)$', 'i'),
     "repeatoff": new RegExp('^(mouse ?)?(repeat ?off|rep ?off|repeat ?disable|rep ?disable)$', 'i'),
@@ -83,7 +83,7 @@ var commands = {
     "social": new RegExp('^(social|talk|gossip) ?([1-6])$', 'i'),
 
     "bindskill": new RegExp('^((((skill|bind|f) ?)+([1-8]) ?((left|right) ?)row ?([1-5]) ?col ?([1-9]|10))|(((skill|bind|f) ?)+([1-8]) ?row ?([1-5]) ?col ?([1-9]|10) ? (left|right)))$', 'i'),
-}
+};
 
 var username = process.env.TWITCH_USERNAME || nconf.get('TWITCH_USERNAME');
 var oauth = process.env.TWITCH_OAUTH || nconf.get('TWITCH_OAUTH');
