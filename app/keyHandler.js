@@ -83,6 +83,7 @@ function Action(key, mouse, desc) {
     self.group = 'action';
     self.continuous = false;
     self.canBeGlobalContinuous = false;
+    self.overrideDelay = null;
 }
 Action.prototype.toJSON = function () {
     // this, stringified, is literally the key to determine whether two objects are equal, so don't add extra properties
@@ -121,6 +122,12 @@ Action.prototype.setThisContinuous = function(val) {
 };
 Action.prototype.enableGlobalContinuous = function () {
     this.canBeGlobalContinuous = true;
+    return this;
+};
+Action.prototype.setOverrideDelay = function (val) {
+    if (!isNaN(parseInt(val))) {
+        this.overrideDelay = parseInt(val);
+    }
     return this;
 };
 
@@ -471,7 +478,7 @@ var actionMap = {
             return null;
         }
         var actionCount = toActionCount(match[2]);
-        var action = new Action('{Down}'.repeat(actionCount) + '{Enter}').description(descriptionFormat('social', match[2]));
+        var action = new Action('{Down}'.repeat(actionCount) + '{Enter}').description(descriptionFormat('social', match[2])).setOverrideDelay(50);
         action.count = actionCount + 1;
         return action;
     },
@@ -614,13 +621,13 @@ function executeAction(action, events) {
         }
     } else {
         if (action.key) {
-            var repeatDelay = config.keyRepeatDelay;
+            var repeatDelay = action.overrideDelay || config.keyRepeatDelay;
             if (config.sendKey) {
                 promises.push(exec('autohotkey ./app/sendkey.ahk ' + action.key + ' ' + repeatDelay));
             }
         }
         if (action.mouse) {
-            var repeatDelay = config.mouseRepeatDelay;
+            var repeatDelay = action.overrideDelay || config.mouseRepeatDelay;
             if (action.mouse.hasOwnProperty('x') && action.mouse.hasOwnProperty('y')) {
                 state.mouseX = action.mouse.x;
                 state.mouseY = action.mouse.y;
