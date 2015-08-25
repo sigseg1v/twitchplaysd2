@@ -150,7 +150,6 @@ client.addListener('pong', function () {
 var keepAliveInterval;
 function serverKeepalive() {
     function sendPing() {
-        client.send('PING', 'empty');
         pongTimeout = setTimeout(function () {
             // reconnect if we dont get a pong reply fast enough
             try {
@@ -159,6 +158,7 @@ function serverKeepalive() {
                 console.log(e);
             }
         }, 10000);
+        client.send('PING', 'empty');
     }
     clearInterval(keepAliveInterval);
     keepAliveInterval = setInterval(sendPing, 3 * 60 * 1000);
