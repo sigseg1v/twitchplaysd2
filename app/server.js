@@ -137,7 +137,32 @@ client.addListener('error', function(message) {
 
 client.addListener('registered', function () {
     console.log('Connected!');
+    serverKeepalive();
 });
+
+var pongTimeout;
+client.addListener('pong', function () {
+    // if we get a response to a ping, clear the timer we have set to reconnect
+    clearInterval(pongTimeout);
+    pongTimeout = undefined;
+});
+
+var keepAliveInterval;
+function serverKeepalive() {
+    function sendPing() {
+        client.send('PING', 'empty');
+        pongTimeout = setTimeout(function () {
+            // reconnect if we dont get a pong reply fast enough
+            try {
+                client.connect();
+            } catch (e) {
+                console.log(e);
+            }
+        }, 10000);
+    }
+    clearInterval(keepAliveInterval);
+    keepAliveInterval = setInterval(sendPing, 3 * 60 * 1000);
+}
 
 client.connect();
 console.log('Connecting...');
