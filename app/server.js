@@ -162,6 +162,7 @@ function serverKeepalive() {
         client.send('PING', 'empty');
     }
     clearInterval(keepAliveInterval);
+    clearTimeout(pongTimeout);
     keepAliveInterval = setInterval(sendPing, 3 * 60 * 1000);
 }
 
