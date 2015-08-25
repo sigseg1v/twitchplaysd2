@@ -143,13 +143,14 @@ client.addListener('registered', function () {
 var pongTimeout;
 client.addListener('pong', function () {
     // if we get a response to a ping, clear the timer we have set to reconnect
-    clearInterval(pongTimeout);
+    clearTimeout(pongTimeout);
     pongTimeout = undefined;
 });
 
 var keepAliveInterval;
 function serverKeepalive() {
     function sendPing() {
+        clearTimeout(pongTimeout);
         pongTimeout = setTimeout(function () {
             // reconnect if we dont get a pong reply fast enough
             try {
@@ -157,7 +158,7 @@ function serverKeepalive() {
             } catch (e) {
                 console.log(e);
             }
-        }, 10000);
+        }, 30000);
         client.send('PING', 'empty');
     }
     clearInterval(keepAliveInterval);
