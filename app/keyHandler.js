@@ -176,7 +176,7 @@ StoredAction.prototype.run = function (events) {
 
 var specialActions = {
     ESCAPE: new Action('{Esc}{Space}').description('esc'), // this is for resurrection of dead player -- the actual command is a separate script, so the keys here are for fallback
-    ALTKEY: new Action('').description('show loot'),
+    SHIFTKEY: new Action('').description('show loot'),
     REPEAT: new StoredAction(function (events) {
         if (events) {
             events.emit('repeatToggle', {
@@ -495,7 +495,7 @@ var actionMap = {
     "quests": function (match) { return new Action('{Q}').setCount(match[2]).description(descriptionFormat('quests', match[2])); },
     "merc": function (match) { return new Action('{O}').setCount(match[2]).description(descriptionFormat('merc', match[2])); },
     "mapfade": function () { return new Action('{F10}').description('map fade'); },
-    "showloot": function () { return specialActions.ALTKEY; },
+    "showloot": function () { return specialActions.SHIFTKEY; },
 
     "social": function (match) {
         if (!match[2]) {
@@ -642,6 +642,11 @@ function executeAction(action, events) {
         // escape is dangerous in d2, so we have a special script that executes it safely
         if (config.sendKey) {
             promises.push(exec('autohotkey ./app/esckeyd2.ahk'));
+        }
+    } else if (action === specialActions.SHIFTKEY) {
+        // switched alt key for shift just in case
+        if (config.sendKey) {
+            promises.push(exec('autohotkey ./app/shiftkey.ahk'));
         }
     } else {
         if (action.key) {

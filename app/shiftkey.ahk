@@ -8,9 +8,9 @@ if (hwnd) {
     IfWinActive, ahk_id %hwnd%
     {
         ;BlockInput On
-        Send {Alt down}
+        Send {Shift down}
         Sleep, 5000
-        Send {Alt up}
+        Send {Shift up}
         ;BlockInput Off
     }
 }
