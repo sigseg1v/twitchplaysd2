@@ -281,7 +281,6 @@ var actionMap = {
             case 4:
                 x = 527;
                 break;
-            }
         }
         return new MovementAction({ x: x, y: 580 }).description('belt position ' + slotNumber);
     },
