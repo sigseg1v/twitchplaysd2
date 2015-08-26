@@ -48,6 +48,8 @@ Note: *This uses no hacks, no game editing, no memory reading, and no process in
 
 - f1-8 -- *pushes the F keys (can be used to bind skills)*
 
+- loot -- *shows loot on the ground for 5 seconds*
+
 - num0-7 -- *does voice emotes*
 
 - walk -- *toggles run / walk*
@@ -71,6 +73,8 @@ Note: *This uses no hacks, no game editing, no memory reading, and no process in
 - merc -- *opens the mercernary stats and equipment window*
 
 - social1-6 -- *selects commands from npc social dialogs*
+
+- fademap -- *toggles the map fading*
 
 #Mouse Positions
 
@@ -112,7 +116,11 @@ Note: *This uses no hacks, no game editing, no memory reading, and no process in
 
 - belt1-4
 
+- belt pos1-4 -- *moves mouse over belt*
+
 ###Skill Tree
+
+*Controls putting the cursor on the skill tree buttons to train skills.*
 
 - tree tab1-3
 
