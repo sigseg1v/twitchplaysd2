@@ -176,6 +176,7 @@ StoredAction.prototype.run = function (events) {
 
 var specialActions = {
     ESCAPE: new Action('{Esc}{Space}').description('esc'), // this is for resurrection of dead player -- the actual command is a separate script, so the keys here are for fallback
+    ALTKEY: new Action('').description('show loot'),
     REPEAT: new StoredAction(function (events) {
         if (events) {
             events.emit('repeatToggle', {
@@ -254,13 +255,35 @@ var actionMap = {
     "vit": function () { return new MovementAction({ x: 220, y: 300 }).description('vit'); },
     "energy": function () { return new MovementAction({ x: 220, y: 360 }).description('energy'); },
 
-    'belt': function (match) {
+    "belt": function (match) {
         var slotNumber = parseInt(match[1]);
         if (slotNumber === 1 || slotNumber === 2 || slotNumber === 3 || slotNumber === 4) {
             return new MovementAction(null, "" + slotNumber).description('belt' + slotNumber);
         } else {
             return null;
         }
+    },
+
+    "belt pos": function (match) {
+        var slotNumber = parseInt(match[2]);
+        var x;
+        switch (slotNumber) {
+            default:
+            case 1:
+                x = 435;
+                break;
+            case 2:
+                x = 467;
+                break;
+            case 3:
+                x = 496;
+                break;
+            case 4:
+                x = 527;
+                break;
+            }
+        }
+        return new MovementAction({ x: x, y: 580 }).description('belt position ' + slotNumber);
     },
 
     "tree tab": function (match) {
@@ -472,6 +495,8 @@ var actionMap = {
     "map": function (match) { return new Action('{Tab}').setCount(match[2]).description(descriptionFormat('map', match[2])); },
     "quests": function (match) { return new Action('{Q}').setCount(match[2]).description(descriptionFormat('quests', match[2])); },
     "merc": function (match) { return new Action('{O}').setCount(match[2]).description(descriptionFormat('merc', match[2])); },
+    "mapfade": function () { return new Action('{F10}').description('map fade'); },
+    "showloot": function () { return specialActions.ALTKEY; },
 
     "social": function (match) {
         if (!match[2]) {

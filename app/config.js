@@ -22,6 +22,7 @@ var commands = {
     "energy": new RegExp('^energy$', 'i'),
 
     "belt": new RegExp('^belt ?([1-4])$', 'i'),
+    "belt pos": new RegExp('^belt ?(pos|position) ?([1-4])$', 'i'),
 
     "tree tab": new RegExp('^tree ?tab ?([1-3])$', 'i'),
     "tree row": new RegExp('^tree ?row ?([1-6])$', 'i'),
@@ -79,6 +80,8 @@ var commands = {
     "map": new RegExp('^(map|m)([1-9])?$', 'i'),
     "quests": new RegExp('^(q|quest|quests)([1-9])?$', 'i'),
     "merc": new RegExp('^(merc)([1-9])?$', 'i'),
+    "mapfade": new RegExp('^(map ?fade|fade ?map)$', 'i'),
+    "showloot": new RegExp('^(show ?loot|loot ?show|loot|alt)$', 'i'),
 
     "social": new RegExp('^(social|talk|gossip) ?([1-6])$', 'i'),
 
