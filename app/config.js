@@ -84,6 +84,7 @@ var commands = {
     "showloot": new RegExp('^(show ?loot|loot ?show|loot|alt)$', 'i'),
 
     "social": new RegExp('^(social|talk|gossip) ?([1-6])$', 'i'),
+    "setplayers": new RegExp('^players ?([1-8])$', 'i'),
 
     "bindskill": new RegExp('^((((skill|bind|f) ?)+([1-8]) ?((left|right) ?)row ?([1-5]) ?col ?([1-9]|10))|(((skill|bind|f) ?)+([1-8]) ?row ?([1-5]) ?col ?([1-9]|10) ? (left|right)))$', 'i'),
 };

@@ -197,6 +197,13 @@ var specialActions = {
         var next = null;
         return next;
     }).description('repeat off'),
+    SETPLAYERS: function (num) {
+        return new StoredAction(function (events) {
+            executeAction(new Action('{Enter}/players ' + num + '{Enter}'));
+            var next = null;
+            return next;
+        }).description('players ' + num).setOverrideDelay(20);
+    },
     BINDSKILLFACTORY: function (side, fKeyNum, row, col) {
         return new StoredAction(function (events) {
             var row_re = config.commands["skill row"];
@@ -519,6 +526,10 @@ var actionMap = {
             return null;
         }
         return specialActions.BINDSKILLFACTORY(side, keyNum, row, col);
+    },
+
+    "setplayers": function (match) {
+        return specialActions.SETPLAYERS(parseInt(match[1]));
     }
 };
 
