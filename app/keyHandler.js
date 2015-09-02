@@ -199,10 +199,10 @@ var specialActions = {
     }).description('repeat off'),
     SETPLAYERS: function (num) {
         return new StoredAction(function (events) {
-            executeAction(new Action('{Enter}/players ' + num + '{Enter}'));
+            executeAction(new Action('{Enter}/players{Space}' + num + '{Enter}').setOverrideDelay(20));
             var next = null;
             return next;
-        }).description('players ' + num).setOverrideDelay(20);
+        }).description('players ' + num);
     },
     BINDSKILLFACTORY: function (side, fKeyNum, row, col) {
         return new StoredAction(function (events) {
