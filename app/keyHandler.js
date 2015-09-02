@@ -199,7 +199,7 @@ var specialActions = {
     }).description('repeat off'),
     SETPLAYERS: function (num) {
         return new StoredAction(function (events) {
-            executeAction(new Action('{Enter}/players{Space}' + num + '{Enter}').setOverrideDelay(20));
+            executeAction(new Action('{Enter}/players{Space}' + num + '{Enter}').setOverrideDelay(50));
             var next = null;
             return next;
         }).description('players ' + num);
