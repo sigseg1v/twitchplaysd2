@@ -65,13 +65,15 @@ module.exports = function (grunt) {
             servers: {
                 tasks: [ 'forever:server:start', 'forever:overlay:start', 'watch:overlayDataFiles', 'watch:overlayCompiled', 'watch:overlayServer', 'watch:server' ],
                 options: {
-                    logConcurrentOutput: true
+                    logConcurrentOutput: true,
+                    limit: 10
                 }
             },
             overlayOnly: {
                 tasks: [ 'forever:overlay:start', 'watch:overlayDataFiles', 'watch:overlayCompiled', 'watch:overlayServer' ],
                 options: {
-                    logConcurrentOutput: true
+                    logConcurrentOutput: true,
+                    limit: 10
                 }
             },
             serverOnly: {
