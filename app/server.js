@@ -158,12 +158,12 @@ function serverKeepalive() {
             } catch (e) {
                 console.log(e);
             }
-        }, 30000);
+        }, 5 * 60 * 1000);
         client.send('PING', 'empty');
     }
     clearInterval(keepAliveInterval);
     clearTimeout(pongTimeout);
-    keepAliveInterval = setInterval(sendPing, 3 * 60 * 1000);
+    keepAliveInterval = setInterval(sendPing, 8 * 60 * 1000);
 }
 
 client.connect();

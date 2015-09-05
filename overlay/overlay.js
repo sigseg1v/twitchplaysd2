@@ -197,6 +197,7 @@
             console.log('Connected to overlay socket.io server.');
         });
         socket.on('reload', function () {
+            socket.disconnect();
             window.location.reload();
         });
         socket.on('message', function (data) {
