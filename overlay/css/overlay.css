@@ -46,3 +46,16 @@ body {
 .command-valid {
     color: lightgreen;
 }
+.vote-list .count {
+    font-weight: bold;
+    display: inline-block;
+    white-space: nowrap;
+    margin-right: 10px;
+}
+.vote-list .command {
+    display: inline-block;
+    white-space: nowrap;
+}
+.vote-list-container {
+    margin-left: 20px;
+}

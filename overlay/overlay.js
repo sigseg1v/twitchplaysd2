@@ -24,10 +24,13 @@
 
         self.actionVoteMap = ko.observable({}).extend({ notify: 'always' });
         self.delayUntilNextAction = ko.observable(0).extend({ notify: 'always' });
-        self.actionVoteList = ko.pureComputed(function () {
-            return Object.keys(self.actionVoteMap()).map(function (key) {
+        self.actionVoteListFormatted = ko.pureComputed(function () {
+            var entireList = Object.keys(self.actionVoteMap()).map(function (key) {
                 return self.actionVoteMap()[key];
+            }).sort(function (a, b) {
+                return parseInt(b.count) - parseInt(a.count);
             });
+            return entireList.slice(0, Math.min(5, entireList.length));
         });
 
         // self.movementVoteMap = ko.observable({}).extend({ notify: 'always' });
@@ -174,15 +177,15 @@
         var vm = new OverlayViewModel();
         socket = require('socket.io-client')(process.env.OVERLAY_HOST + ':' + process.env.OVERLAY_PORT + '/client');
 
-        var actionVoteChart = createD3Chart(".action-vote .vis", ".action-vote .bars", []);
+        //var actionVoteChart = createD3Chart(".action-vote .vis", ".action-vote .bars", []);
         //var movementVoteChart = createD3Chart(".movement-vote .vis", ".movement-vote .bars", []);
 
-        vm.actionVoteList.subscribe(function (list) {
-            actionVoteChart.update(list);
-        });
-        vm.delayUntilNextAction.subscribe(function (delay) {
-            actionVoteChart.restartCountdown(delay);
-        });
+        // vm.actionVoteList.subscribe(function (list) {
+        //     actionVoteChart.update(list);
+        // });
+        // vm.delayUntilNextAction.subscribe(function (delay) {
+        //     actionVoteChart.restartCountdown(delay);
+        // });
         // vm.movementVoteList.subscribe(function (list) {
         //     movementVoteChart.update(list);
         // });
@@ -207,7 +210,7 @@
                 if (command.type === 'action') {
                     vm.actionCommand(command.description || '');
                     vm.delayUntilNextAction(command.delay);
-                    if (vm.actionVoteList().length !== 0) {
+                    if (vm.actionVoteListFormatted().length !== 0) {
                         vm.actionVoteMap({});
                     }
                 } else if (command.type === 'movement') {
