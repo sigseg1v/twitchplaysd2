@@ -2,7 +2,7 @@ DetectHiddenWindows, On
 SetDefaultMouseSpeed, 0
 CoordMode, Mouse, Client
 target=ahk_class Diablo II
-executeCmd=Diablo II.exe -w
+executeCmd=Diablo II.exe -w -sndbkg
 executeDir=C:\Diablo II
 SetWorkingDir, %executeDir%
 
