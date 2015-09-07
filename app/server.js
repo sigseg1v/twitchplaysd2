@@ -141,7 +141,7 @@ client.addListener('message' + config.channel, function(from, message) {
 
 client.addListener('message' + config.channel, function(from, message) {
     // handle special commands
-    if (!whitelist.isWhitelisted(from)) {
+    if (!whitelist.isWhitelisted(from) && !whitelist.hasAdminPermission(from)) {
         return;
     }
 
@@ -164,13 +164,13 @@ client.addListener('message' + config.channel, function(from, message) {
                 client.say(config.channel, match[1] + ' removed from blacklist; they can now run commands.');
                 break;
             case 'whitelist':
-                if (whitelist.hasAddPermission(from)) {
+                if (whitelist.hasAdminPermission(from)) {
                     whitelist.add(match[1]);
                     client.say(config.channel, match[1] + ' whitelisted for mod commands.');
                 }
                 break;
             case 'whitelistremove':
-                if (whitelist.hasAddPermission(from)) {
+                if (whitelist.hasAdminPermission(from)) {
                     whitelist.remove(match[1]);
                     client.say(config.channel, match[1] + ' removed from whitelist.');
                 }

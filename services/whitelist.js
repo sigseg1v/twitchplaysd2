@@ -51,7 +51,7 @@ module.exports = {
         }
         return false;
     },
-    hasAddPermission: function (username) {
+    hasAdminPermission: function (username) {
         if (username !== undefined && username !== null) {
             return !!superAdmins[username.toLowerCase()];
         }
