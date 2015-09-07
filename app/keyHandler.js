@@ -535,7 +535,7 @@ var actionMap = {
 
 var commandTypes = {
     'action': {
-        minDelay: 5000
+        minDelay: 500
     },
     'mouseAction' : {
         minDelay: 100,
