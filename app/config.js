@@ -90,8 +90,8 @@ var commands = {
 };
 
 var specialCommands = {
-    "ban": new RegExp('^!ban ?([^ ])+$', 'i'),
-    "unban": new RegExp('^!unban ?([^ ])+$', 'i'),
+    "ban": new RegExp('^!ban ?([^ ]+)$', 'i'),
+    "unban": new RegExp('^!unban ?([^ ]+)$', 'i'),
 };
 
 var username = process.env.TWITCH_USERNAME || nconf.get('TWITCH_USERNAME');
