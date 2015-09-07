@@ -4,6 +4,10 @@ Welcome to Twitch Plays D2.
 
 Enter commands in chat to control the character.
 
+#Rules
+
+Working together to progress is the main goal. While you are allowed to do whatever you'd like, if you are disrupting the stream, trolling, or attempting to grief other players, mods do have permission to either timeout, ban, or set the character to ignore your commands.
+
 Note: *This uses no hacks, no game editing, no memory reading, and no process injection; it simply reads chat, and then moves the keyboard and mouse of the computer it is connected to, which just so happens to have Diablo II open on it. It in no way interacts with the game executable and cannot read anything from the game. It is an open-loop system. I will not implement anything that you can't already do in the normal game.*
 
 
