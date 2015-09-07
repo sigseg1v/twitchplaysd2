@@ -1,6 +1,6 @@
 var fs = require('fs');
 
-var file = '../data/blacklistUsers.json';
+var file = './data/blacklistUsers.json';
 
 var blacklist = {};
 
