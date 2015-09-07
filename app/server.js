@@ -139,7 +139,7 @@ client.addListener('message' + config.channel, function(from, message) {
     events.emit('message', { name: from, message: message, match: !!match });
 });
 
-client.addListener('notice', function(from, to, message) {
+client.addListener('ctcp-privmsg', function(from, to, message) {
     if (to !== config.nick) {
         // only listen to private messages to us
         return;
@@ -160,14 +160,14 @@ client.addListener('notice', function(from, to, message) {
                     return;
                 }
                 blacklist.add(match[1]);
-                client.say(from, match[1] + ' (case-sensitive) added to blacklist; they can no longer perform commands until you !unban them.');
+                client.ctcp(from, 'privmsg', match[1] + ' (case-sensitive) added to blacklist; they can no longer perform commands until you !unban them.');
                 break;
             case 'unban':
                 if (!whitelist.isWhitelisted(from)) {
                     return;
                 }
                 blacklist.remove(match[1]);
-                client.say(from, match[1] + ' (case-sensitive) removed from blacklist; they can now run commands.');
+                client.ctcp(from, 'privmsg', match[1] + ' (case-sensitive) removed from blacklist; they can now run commands.');
                 break;
             default:
                 return;
