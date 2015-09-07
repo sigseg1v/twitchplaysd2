@@ -139,9 +139,9 @@ client.addListener('message' + config.channel, function(from, message) {
     events.emit('message', { name: from, message: message, match: !!match });
 });
 
-client.addListener('ctcp-privmsg', function(from, to, message) {
-    if (to !== config.nick) {
-        // only listen to private messages to us
+client.addListener('message' + config.channel, function(from, message) {
+    // handle special commands
+    if (!whitelist.isWhitelisted(from)) {
         return;
     }
 
@@ -156,18 +156,24 @@ client.addListener('ctcp-privmsg', function(from, to, message) {
     })) {
         switch (command) {
             case 'ban':
-                if (!whitelist.isWhitelisted(from)) {
-                    return;
-                }
                 blacklist.add(match[1]);
-                client.ctcp(from, 'privmsg', match[1] + ' (case-sensitive) added to blacklist; they can no longer perform commands until you !unban them.');
+                client.say(config.channel, match[1] + ' (case-sensitive) added to blacklist; they can no longer perform commands until you !unban them.');
                 break;
             case 'unban':
-                if (!whitelist.isWhitelisted(from)) {
-                    return;
-                }
                 blacklist.remove(match[1]);
-                client.ctcp(from, 'privmsg', match[1] + ' (case-sensitive) removed from blacklist; they can now run commands.');
+                client.say(config.channel, match[1] + ' (case-sensitive) removed from blacklist; they can now run commands.');
+                break;
+            case 'whitelist':
+                if (whitelist.hasAddPermission(from)) {
+                    whitelist.add(match[1]);
+                    client.say(config.channel, match[1] + ' whitelisted for mod commands.');
+                }
+                break;
+            case 'whitelistremove':
+                if (whitelist.hasAddPermission(from)) {
+                    whitelist.remove(match[1]);
+                    client.say(config.channel, match[1] + ' removed from whitelist.');
+                }
                 break;
             default:
                 return;

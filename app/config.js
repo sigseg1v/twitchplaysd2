@@ -92,6 +92,8 @@ var commands = {
 var specialCommands = {
     "ban": new RegExp('^!ban ?([^ ]+)$', 'i'),
     "unban": new RegExp('^!unban ?([^ ]+)$', 'i'),
+    "whitelist": new RegExp('^!whitelist ?([^ ]+)$', 'i'),
+    "whitelistremove": new RegExp('^!whitelist ?remove ?([^ ]+)$', 'i')
 };
 
 var username = process.env.TWITCH_USERNAME || nconf.get('TWITCH_USERNAME');
