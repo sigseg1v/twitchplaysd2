@@ -19,7 +19,6 @@ body {
 .message {
     display: inline-block;
     float: right;
-    white-space: nowrap;
 }
 .command-title {
     font-size: 18px;

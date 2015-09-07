@@ -8,6 +8,8 @@ var Promise = require('bluebird');
 var exec = Promise.promisify(require('child_process').exec);
 var EventEmitter = require('events').EventEmitter;
 var events = new EventEmitter();
+var whitelist = require('../services/whitelist.js');
+var blacklist = require('../services/blacklist.js');
 
 var client = new irc.Client(config.server, config.nick, {
     channels: [config.channel],
@@ -29,6 +31,12 @@ var commandRegexes = [];
 Object.keys(config.commands).forEach(function (k) {
     var regexp = config.commands[k];
     commandRegexes.push({ re: regexp, command: k });
+});
+
+var specialCommandRegexes = [];
+Object.keys(config.specialCommands).forEach(function (k) {
+    var regexp = config.specialCommands[k];
+    specialCommandRegexes.push({ re: regexp, command: k });
 });
 
 var streaming = false;
@@ -105,7 +113,7 @@ function stopEverything() {
 client.addListener('message' + config.channel, function(from, message) {
     var match = null;
     var command = null;
-    if (commandRegexes.some(function (item) {
+    if (!blacklist.isBlacklisted(from) && commandRegexes.some(function (item) {
         match = message.match(item.re);
         if (match) {
             command = item.command;
@@ -129,6 +137,42 @@ client.addListener('message' + config.channel, function(from, message) {
         }
     }
     events.emit('message', { name: from, message: message, match: !!match });
+});
+
+client.addListener('notice', function(from, to, message) {
+    if (to !== config.nick) {
+        // only listen to private messages to us
+        return;
+    }
+
+    var match = null;
+    var command = null;
+    if (specialCommandRegexes.some(function (item) {
+        match = message.match(item.re);
+        if (match) {
+            command = item.command;
+        }
+        return !!match;
+    })) {
+        switch (command) {
+            case 'ban':
+                if (!whitelist.isWhitelisted(from)) {
+                    return;
+                }
+                blacklist.add(match[1]);
+                client.say(from, match[1] + ' (case-sensitive) added to blacklist; they can no longer perform commands until you !unban them.');
+                break;
+            case 'unban':
+                if (!whitelist.isWhitelisted(from)) {
+                    return;
+                }
+                blacklist.remove(match[1]);
+                client.say(from, match[1] + ' (case-sensitive) removed from blacklist; they can now run commands.');
+                break;
+            default:
+                return;
+        }
+    }
 });
 
 client.addListener('error', function(message) {

@@ -89,6 +89,11 @@ var commands = {
     "bindskill": new RegExp('^((((skill|bind|f) ?)+([1-8]) ?((left|right) ?)row ?([1-5]) ?col ?([1-9]|10))|(((skill|bind|f) ?)+([1-8]) ?row ?([1-5]) ?col ?([1-9]|10) ? (left|right)))$', 'i'),
 };
 
+var specialCommands = {
+    "ban": new RegExp('^!ban ?([^ ])+$', 'i'),
+    "unban": new RegExp('^!unban ?([^ ])+$', 'i'),
+};
+
 var username = process.env.TWITCH_USERNAME || nconf.get('TWITCH_USERNAME');
 var oauth = process.env.TWITCH_OAUTH || nconf.get('TWITCH_OAUTH');
 var channel = process.env.TWITCH_CHANNEL || nconf.get('TWITCH_CHANNEL');
@@ -160,6 +165,7 @@ var config = {
 
     sendKey: sendKey,
     commands: commands,
+    specialCommands: specialCommands,
 
     logging: logging === false ? false : true
 };
