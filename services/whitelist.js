@@ -1,6 +1,6 @@
 var fs = require('fs');
 
-var file = '../data/specialCommandWhitelistUsers.json';
+var file = './data/specialCommandWhitelistUsers.json';
 
 var whitelist = {};
 
