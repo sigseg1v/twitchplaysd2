@@ -9,7 +9,7 @@ SetWorkingDir, %executeDir%
 WinGet, hwnd, ID, %target%
 if (!hwnd) {
     Run, %executeCmd%
-    Sleep, 5000
+    Sleep, 10000
     WinGet, hwnd, ID, %target%
     if (hwnd) {
         WinSet, AlwaysOnTop, on, ahk_id %hwnd%
