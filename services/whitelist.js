@@ -17,7 +17,10 @@ function saveWhitelist() {
 function loadSuperAdmins() {
     try {
         if (fs.existsSync(file)) {
-            superAdmins = JSON.parse(fs.readFileSync(superAdminsFile, 'utf8')) || {};
+            var loaded = JSON.parse(fs.readFileSync(superAdminsFile, 'utf8')) || {};
+            Object.keys(loaded).forEach(function (k) {
+                superAdmins[k.toLowerCase()] = loaded[k];
+            });
         }
     } catch (e) {
         console.log(e);
@@ -28,7 +31,10 @@ function loadSuperAdmins() {
 function loadWhitelist() {
     try {
         if (fs.existsSync(file)) {
-            whitelist = JSON.parse(fs.readFileSync(file, 'utf8')) || {};
+            var loaded = JSON.parse(fs.readFileSync(file, 'utf8')) || {};
+            Object.keys(loaded).forEach(function (k) {
+                whitelist[k.toLowerCase()] = loaded[k];
+            });
         } else {
             saveWhitelist();
         }
@@ -40,23 +46,33 @@ function loadWhitelist() {
 
 module.exports = {
     isWhitelisted: function (username) {
-        return !!whitelist[username];
+        if (username !== undefined && username !== null) {
+            return !!whitelist[username.toLowerCase()];
+        }
+        return false;
     },
     hasAddPermission: function (username) {
-        return !!superAdmins[username];
+        if (username !== undefined && username !== null) {
+            return !!superAdmins[username.toLowerCase()];
+        }
+        return false;
     },
     add: function (username) {
-        if (username !== undefined) {
-            whitelist[username] = true;
+        if (username !== undefined && username !== null) {
+            var formatted = username.toLowerCase();
+            whitelist[formatted] = true;
             saveWhitelist();
+            return !!whitelist[formatted];
         }
-        return !!whitelist[username];
+        return false;
     },
     remove: function (username) {
-        if (username !== undefined) {
-            whitelist[username] = false;
+        if (username !== undefined && username !== null) {
+            var formatted = username.toLowerCase();
+            whitelist[formatted] = false;
             saveWhitelist();
+            return !!whitelist[formatted];
         }
-        return !!whitelist[username];
+        return false;
     }
 }

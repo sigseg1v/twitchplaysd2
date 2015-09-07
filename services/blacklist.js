@@ -14,7 +14,10 @@ function saveBlacklist() {
 function loadBlacklist() {
     try {
         if (fs.existsSync(file)) {
-            blacklist = JSON.parse(fs.readFileSync(file, 'utf8')) || {};
+            var loaded = JSON.parse(fs.readFileSync(file, 'utf8')) || {};
+            Object.keys(loaded).forEach(function (k) {
+                blacklist[k.toLowerCase()] = loaded[k];
+            });
         } else {
             saveBlacklist();
         }
@@ -26,20 +29,27 @@ function loadBlacklist() {
 
 module.exports = {
     isBlacklisted: function (username) {
-        return !!blacklist[username];
+        if (username !== undefined && username !== null) {
+            return !!blacklist[username.toLowerCase()];
+        }
+        return false;
     },
     add: function (username) {
-        if (username !== undefined) {
-            blacklist[username] = true;
+        if (username !== undefined && username !== null) {
+            var formatted = username.toLowerCase();
+            blacklist[formatted] = true;
             saveBlacklist();
+            return !!blacklist[formatted];
         }
-        return !!blacklist[username];
+        return false;
     },
     remove: function (username) {
-        if (username !== undefined) {
-            blacklist[username] = false;
+        if (username !== undefined && username !== null) {
+            var formatted = username.toLowerCase();
+            blacklist[formatted] = false;
             saveBlacklist();
+            return !!blacklist[formatted];
         }
-        return !!blacklist[username];
+        return false;
     }
 }

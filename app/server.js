@@ -157,11 +157,11 @@ client.addListener('message' + config.channel, function(from, message) {
         switch (command) {
             case 'ban':
                 blacklist.add(match[1]);
-                client.say(config.channel, match[1] + ' (case-sensitive) added to blacklist; they can no longer perform commands until you !unban them.');
+                client.say(config.channel, match[1] + ' added to blacklist; they can no longer perform commands until you !unban them.');
                 break;
             case 'unban':
                 blacklist.remove(match[1]);
-                client.say(config.channel, match[1] + ' (case-sensitive) removed from blacklist; they can now run commands.');
+                client.say(config.channel, match[1] + ' removed from blacklist; they can now run commands.');
                 break;
             case 'whitelist':
                 if (whitelist.hasAddPermission(from)) {
